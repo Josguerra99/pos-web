@@ -234,7 +234,7 @@ class AgregarResolucionAdmin extends Component {
                       {this.state.inicio + " , " + this.state.fin}
                     </TableCell>
                     <TableCell>
-                      {formatDate(this.state.selectedDate, "dd/MM/YYYY")}
+                      {formatDate(this.state.selectedDate, "dd/MM/yyyy")}
                     </TableCell>
                   </TableRow>
                 </TableBody>
