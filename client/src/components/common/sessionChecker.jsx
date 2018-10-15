@@ -2,11 +2,11 @@ import React, { Component } from "react";
 import CircularIndeterminate from "../common/circularprogress";
 import PropTypes from "prop-types";
 import { withStyles } from "@material-ui/core/styles";
-import styles from "../dashboard/dashboardStyle";
+import styles from "../themes/dashboardStyle";
 import Theme from "../themes/defaulTheme";
 import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
-import history from "../common/history";
+import history from "./history";
 
 class CheckSession extends Component {
   state = {

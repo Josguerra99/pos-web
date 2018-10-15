@@ -1,9 +1,13 @@
 import React from "react";
 import { Router, Route, Switch } from "react-router-dom";
 import SignIn from "../components/signin/signin";
+
 import HomeDefault from "../components/default/homedefault";
-import HomeAdmin from "../components/admin/homeadmin";
 import HomeSystem from "../components/system/homesystem";
+
+import HomeAdmin from "../components/admin/homeadmin";
+import AgregarResolucionAdmin from "../components/admin/agregarResolucion";
+
 import history from "../components/common/history";
 
 export default () => (
@@ -22,6 +26,12 @@ export default () => (
         path="/admin/home"
         exact
         render={props => <HomeAdmin {...props} />}
+      />
+
+      <Route
+        path="/admin/agregar-resolucion"
+        exact
+        render={props => <AgregarResolucionAdmin {...props} />}
       />
 
       <Route

@@ -9,10 +9,11 @@ import BarChartIcon from "@material-ui/icons/BarChart";
 import AssignmentIcon from "@material-ui/icons/Assignment";
 import HomeIcon from "@material-ui/icons/Home";
 import BookIcon from "@material-ui/icons/Book";
+import history from "../common/history";
 
 export const mainListItems = (
   <div>
-    <ListItem button>
+    <ListItem button onClick={() => history.push("/admin/home")}>
       <ListItemIcon>
         <HomeIcon />
       </ListItemIcon>
@@ -36,7 +37,7 @@ export const mainListItems = (
       </ListItemIcon>
       <ListItemText primary="Productos" />
     </ListItem>
-    <ListItem button>
+    <ListItem button onClick={() => history.push("/admin/agregar-resolucion")}>
       <ListItemIcon>
         <BookIcon />
       </ListItemIcon>

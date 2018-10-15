@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import Dashboard from "../dashboard/dashboard";
 import PropTypes from "prop-types";
 import { withStyles } from "@material-ui/core/styles";
-import styles from "../dashboard/dashboardStyle";
+import styles from "../themes/dashboardStyle";
 import SessionChecker from "../common/sessionChecker";
 import { mainListItems, secondaryListItems } from "./defaultMenuList";
 

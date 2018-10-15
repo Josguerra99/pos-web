@@ -34,5 +34,9 @@ export default theme => ({
   },
   rightIcon: {
     marginLeft: theme.spacing.unit
+  },
+  dialogPaper: {
+    minWidth: "80vh",
+    maxWidth: "80vh"
   }
 });

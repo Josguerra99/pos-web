@@ -12,7 +12,7 @@ import Paper from "@material-ui/core/Paper";
 import Typography from "@material-ui/core/Typography";
 import withStyles from "@material-ui/core/styles/withStyles";
 import SendIcon from "@material-ui/icons/Send";
-import styles from "./signinstyles";
+import styles from "../themes/signinstyles";
 import Theme from "../themes/defaulTheme";
 import Grid from "@material-ui/core/Grid";
 import Snackbar from "@material-ui/core/Snackbar";

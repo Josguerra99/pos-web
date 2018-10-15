@@ -12,7 +12,7 @@ import MenuIcon from "@material-ui/icons/Menu";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import Drawer from "@material-ui/core/Drawer";
-import styles from "./dashboardStyle";
+import styles from "../themes/dashboardStyle";
 import Theme from "../themes/defaulTheme";
 
 class Dashboard extends Component {

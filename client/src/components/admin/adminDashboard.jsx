@@ -3,7 +3,7 @@ import Dashboard from "../dashboard/dashboard";
 import { mainListItems, secondaryListItems } from "./adminMenuList";
 import PropTypes from "prop-types";
 import { withStyles } from "@material-ui/core/styles";
-import styles from "../dashboard/dashboardStyle";
+import styles from "../themes/dashboardStyle";
 import SessionChecker from "../common/sessionChecker";
 
 class AdminDashboard extends Component {
