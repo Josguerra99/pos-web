@@ -7,6 +7,7 @@ import HomeSystem from "../components/system/homesystem";
 
 import HomeAdmin from "../components/admin/homeadmin";
 import AgregarResolucionAdmin from "../components/admin/agregarResolucion";
+import HistorialResoluiciones from "../components/admin/historialResoluciones";
 
 import history from "../components/common/history";
 
@@ -14,26 +15,26 @@ export default () => (
   <Router history={history}>
     <Switch>
       <Route path="/" exact render={props => <SignIn {...props} />} />
-
       <Route path="/signin" exact render={props => <SignIn {...props} />} />
-
       <Route
         path="/default/home"
         render={props => <HomeDefault {...props} />}
       />
-
       <Route
         path="/admin/home"
         exact
         render={props => <HomeAdmin {...props} />}
       />
-
       <Route
         path="/admin/agregar-resolucion"
         exact
         render={props => <AgregarResolucionAdmin {...props} />}
       />
-
+      <Route
+        path="/admin/historial-resoluciones"
+        exact
+        render={props => <HistorialResoluiciones {...props} />}
+      />
       <Route
         path="/system/home"
         exact

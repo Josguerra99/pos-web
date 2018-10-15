@@ -49,7 +49,10 @@ export const mainListItems = (
 export const secondaryListItems = (
   <div>
     <ListSubheader inset>Reportes</ListSubheader>
-    <ListItem button>
+    <ListItem
+      button
+      onClick={() => history.push("/admin/historial-resoluciones")}
+    >
       <ListItemIcon>
         <AssignmentIcon />
       </ListItemIcon>
