@@ -1,7 +1,8 @@
 const con = require("../database/db-con");
 
-let checkUser = {};
-checkUser.getUsers = (user_name, pass, callback) => {
+let userMngr = {};
+
+userMngr.getUsers = (user_name, pass, callback) => {
   if (con) {
     con.query(
       "SET @valid=0; SET @role='None'; SET @nit_negocio=null; CALL check_user(?,?,@valid,@role,@nit_negocio); SELECT @valid,@role,@nit_negocio; ",
@@ -17,4 +18,4 @@ checkUser.getUsers = (user_name, pass, callback) => {
   }
 };
 
-module.exports = checkUser;
+module.exports = userMngr;

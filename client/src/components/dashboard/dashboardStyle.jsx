@@ -72,5 +72,8 @@ export default theme => ({
   },
   h5: {
     marginBottom: theme.spacing.unit * 2
+  },
+  progress: {
+    margin: theme.spacing.unit * 2
   }
 });

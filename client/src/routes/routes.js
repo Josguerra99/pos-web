@@ -1,18 +1,20 @@
 import React from "react";
-import { BrowserRouter, Route, Switch } from "react-router-dom";
+import { Router, Route, Switch } from "react-router-dom";
 import SignIn from "../components/signin/signin";
 import HomeDefault from "../components/default/homedefault";
 import HomeAdmin from "../components/admin/homeadmin";
+import HomeSystem from "../components/system/homesystem";
+import history from "../components/common/history";
 
 export default () => (
-  <BrowserRouter>
+  <Router history={history}>
     <Switch>
       <Route path="/" exact render={props => <SignIn {...props} />} />
 
       <Route path="/signin" exact render={props => <SignIn {...props} />} />
 
       <Route
-        path="/employee/home"
+        path="/default/home"
         render={props => <HomeDefault {...props} />}
       />
 
@@ -21,6 +23,12 @@ export default () => (
         exact
         render={props => <HomeAdmin {...props} />}
       />
+
+      <Route
+        path="/system/home"
+        exact
+        render={props => <HomeSystem {...props} />}
+      />
     </Switch>
-  </BrowserRouter>
+  </Router>
 );

@@ -7,6 +7,9 @@ class Theme extends Component {
     const theme = createMuiTheme({
       palette: {
         primary: blue
+      },
+      typography: {
+        useNextVariants: true
       }
     });
     return (
