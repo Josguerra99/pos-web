@@ -2,9 +2,12 @@ const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
 const session = require("express-session");
+const path = require("path");
 
 const SessionMngr = require("./server/models/user-session");
 //Midlewares
+
+app.use(express.static(path.join(__dirname, "client/build")));
 app.use(bodyParser.json());
 
 app.use(
@@ -14,14 +17,6 @@ app.use(
     saveUninitialized: true
   })
 );
-
-//Cambiar puento dinamicamente
-const port = process.env.PORT || 3001;
-app.listen(port, () => console.log(`Listening on port ${port}...`));
-
-app.get("/", (req, res) => {
-  res.send("Backend :D");
-});
 
 ///---------------Autenticacion
 
@@ -67,4 +62,16 @@ app.get("/api/admin-home", (req, res) => {
     return res.status(200).send(":D");
   }
   return res.status(401).send();
+});
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname + "/client/build/index.html"));
+});
+
+//Cambiar puento dinamicamente
+const port = process.env.PORT || 3001;
+app.listen(port, () => console.log(`Listening on port ${port}...`));
+
+app.get("/", (req, res) => {
+  res.send("Backend :D");
 });
