@@ -22,7 +22,7 @@ import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import AutoComplete from "../common/autocompleter";
-const formatDate = require("date-fns/format");
+import formatDate from "date-fns/format";
 
 class AgregarResolucionAdmin extends Component {
   state = {
