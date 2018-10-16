@@ -2,7 +2,8 @@ const drawerWidth = 240;
 
 export default theme => ({
   root: {
-    display: "flex"
+    display: "flex",
+    backgroundColor: "#EDEDEE"
   },
   toolbar: {
     paddingRight: 24 // keep right padding when drawer closed

@@ -9,6 +9,7 @@ import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
 import classNames from "classnames";
 import Typography from "@material-ui/core/Typography";
+import queryString from "query-string";
 
 const styles = theme => ({
   list: {

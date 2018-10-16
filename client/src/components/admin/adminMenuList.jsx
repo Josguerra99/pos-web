@@ -70,5 +70,14 @@ export const secondaryListItems = (
       </ListItemIcon>
       <ListItemText primary="Compras" />
     </ListItem>
+    <ListItem
+      button
+      onClick={() => history.push("/admin/resoluciones-activas")}
+    >
+      <ListItemIcon>
+        <AssignmentIcon />
+      </ListItemIcon>
+      <ListItemText primary="Resolucion Actual" />
+    </ListItem>
   </div>
 );

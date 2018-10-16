@@ -10,9 +10,7 @@ import Paper from "@material-ui/core/Paper";
 import Chip from "@material-ui/core/Chip";
 import MenuItem from "@material-ui/core/MenuItem";
 import CancelIcon from "@material-ui/icons/Cancel";
-import InputLabel from "@material-ui/core/InputLabel";
 import { emphasize } from "@material-ui/core/styles/colorManipulator";
-import FormControl from "@material-ui/core/FormControl";
 const suggestions = [
   { id: "FAC", label: "Factura" },
   { id: "NC", label: "Nota de crédito" },
@@ -193,7 +191,8 @@ class AutoComplete extends React.Component {
   state = {
     value: null
   };
-  handleChange = name => value => {
+
+  handleChange = value => {
     this.props.onChange(value);
     this.setState({
       value
@@ -212,21 +211,22 @@ class AutoComplete extends React.Component {
         }
       })
     };
+
+    const { hasErrors } = this.state;
     return (
       <NoSsr>
         <Select
+          required
           classes={classes}
           styles={selectStyles}
           options={suggestions}
           components={components}
           value={this.state.single}
-          onChange={this.handleChange()}
+          onChange={this.handleChange}
           placeholder="Selecciona un documento"
           textFieldProps={{
             label: LabelText,
-            InputLabelProps: {
-              shrink: true
-            }
+            InputLabelProps: { shrink: true }
           }}
           autoFocus
         />

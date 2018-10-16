@@ -8,6 +8,7 @@ const con = mysql.createConnection({
   password: "Rb2JzKiQ2P",
   multipleStatements: true
 });
+
 /*
 const con = mysql.createConnection({
   host: "localhost",
@@ -15,6 +16,6 @@ const con = mysql.createConnection({
   user: "root",
   password: "",
   multipleStatements: true
-}); 
+});
 */
 module.exports = con;

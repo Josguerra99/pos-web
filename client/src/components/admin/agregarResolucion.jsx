@@ -23,26 +23,78 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import AutoComplete from "../common/autocompleter";
 import formatDate from "date-fns/format";
+import IntRange from "../common/rangeInt";
+import FormHelperText from "@material-ui/core/FormHelperText";
+import Snackbar from "@material-ui/core/Snackbar";
+import history from "../common/history";
 
 class AgregarResolucionAdmin extends Component {
   state = {
-    doc: "",
+    doc: null,
     nres: "",
     serie: "",
-    inicio: 0,
-    fin: 0,
-    selectedDate: null,
-    dialog: { open: false }
+    inicio: "",
+    fin: "",
+    selectedDate: new Date(),
+    dialog: { open: false },
+    hasErrorsDoc: false,
+    snack: {
+      open: false,
+      vertical: "bottom",
+      horizontal: "right",
+      message: ""
+    }
   };
   constructor() {
     super();
     this.tryToSubmitForm = this.tryToSubmitForm.bind(this);
+    this.tryToAddRes = this.tryToAddRes.bind(this);
   }
 
   componentDidMount() {}
 
+  tryToAddRes() {
+    const fecha = formatDate(this.state.selectedDate, "yyyy/MM/dd");
+    const requestData = {
+      num: this.state.nres,
+      documento: this.state.doc.value,
+      serie: this.state.serie,
+      inicio: this.state.inicio,
+      fin: this.state.fin,
+      fecha: fecha
+    };
+
+    //Realizar peticion post
+    fetch("/api/add_resolucion", {
+      method: "POST",
+      body: JSON.stringify(requestData),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    })
+      .then(res => res.json())
+      .then(data => {
+        var err = data["@err"];
+        //No hay errores entonces vamos a la pagina de resoluciones activas
+        if (err == 0) {
+          history.push(
+            "/admin/resoluciones-activas?addSuccess=" + this.state.doc.value
+          );
+        }
+        if (err == 1) {
+          this.handleDialogClose();
+          this.handleOpenSnack("Error al intentar agregar resolucion");
+        }
+      });
+  }
+
   tryToSubmitForm(e) {
     e.preventDefault();
+    if (this.state.doc == null || JSON.stringify(this.state.doc) === "[]") {
+      this.setState({ hasErrorsDoc: true });
+      return;
+    }
+
     this.handleDialogOpen();
   }
 
@@ -57,14 +109,13 @@ class AgregarResolucionAdmin extends Component {
   handleSerieChange = e => {
     this.setState({ serie: e.target.value });
   };
-  handleInicioChange = e => {
-    //Si ya esta ingresado el fin comprobamos que este sea menor
-    this.setState({
-      inicio: e.target.value
-    });
+
+  handleInicioChange = val => {
+    this.setState({ inicio: val });
   };
-  handleFinChange = e => {
-    this.setState({ fin: e.target.value });
+
+  handleFinChange = val => {
+    this.setState({ fin: val });
   };
   handleDateChange = date => {
     this.setState({ selectedDate: date });
@@ -77,12 +128,67 @@ class AgregarResolucionAdmin extends Component {
     this.setState({ dialog: { open: false } });
   };
 
+  handleOpenSnack = message => {
+    this.setState({
+      snack: {
+        open: true,
+        vertical: "bottom",
+        horizontal: "right",
+        message: message
+      }
+    });
+  };
+
+  //Cerrar el mensaje
+  handleCloseSnack = () => {
+    this.setState({
+      snack: {
+        open: false,
+        vertical: "bottom",
+        horizontal: "right",
+        message: ""
+      }
+    });
+  };
+
   /*****************EVENTS*/
+
+  renderTable(classes) {
+    if (this.state.dialog.open)
+      return (
+        <Table className={classes.table}>
+          <TableHead>
+            <TableRow>
+              <TableCell>No.</TableCell>
+              <TableCell>Documento</TableCell>
+              <TableCell>Serie</TableCell>
+              <TableCell>Rango</TableCell>
+              <TableCell>Fecha</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <TableRow key={0}>
+              <TableCell>{this.state.nres}</TableCell>
+              <TableCell>{this.state.doc["label"]}</TableCell>
+              <TableCell>{this.state.serie}</TableCell>
+              <TableCell>
+                {this.state.inicio + " al " + this.state.fin}
+              </TableCell>
+              <TableCell>
+                {formatDate(this.state.selectedDate, "dd/MM/yyyy")}
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      );
+  }
 
   /*****************CREAR LA PAGINA*/
   render() {
     const { classes } = this.props;
     const { selectedDate } = this.state;
+    const { hasErrorsDoc } = this.state;
+    const { vertical, horizontal, open, message } = this.state.snack;
 
     return (
       <AdminDashboard>
@@ -97,11 +203,21 @@ class AgregarResolucionAdmin extends Component {
               Ingresar resolución
             </Typography>
             <form className={classes.form} onSubmit={this.tryToSubmitForm}>
-              <FormControl margin="normal" required fullWidth>
+              <FormControl
+                margin="normal"
+                required
+                fullWidth
+                error={hasErrorsDoc}
+                autoFocus
+              >
                 <AutoComplete
                   name="Tipo de documento"
                   onChange={this.handleDocChange}
+                  autoFocus
                 />
+                {hasErrorsDoc && (
+                  <FormHelperText>Campo requerido!</FormHelperText>
+                )}
               </FormControl>
 
               <Grid container spacing={24}>
@@ -129,36 +245,17 @@ class AgregarResolucionAdmin extends Component {
                 </Grid>
               </Grid>
 
-              <Grid container spacing={24}>
-                <Grid item xs={3}>
-                  <FormControl margin="normal" required fullWidth>
-                    <InputLabel htmlFor="start">Inicio</InputLabel>
-                    <Input
-                      type="number"
-                      id="start"
-                      name="start"
-                      value={this.state.inicio}
-                      onChange={this.handleInicioChange}
-                    />
-                  </FormControl>
-                </Grid>
-                <Grid item xs={3}>
-                  <FormControl margin="normal" required fullWidth>
-                    <InputLabel htmlFor="end">Fin</InputLabel>
-                    <Input
-                      type="number"
-                      id="end"
-                      name="end"
-                      value={this.state.fin}
-                      onChange={this.handleFinChange}
-                    />
-                  </FormControl>
-                </Grid>
+              <Grid container spacing={0}>
+                <IntRange
+                  getStart={this.handleInicioChange}
+                  getEnd={this.handleFinChange}
+                />
               </Grid>
 
               <FormControl margin="normal" required fullWidth>
                 <div className="picker">
                   <DatePicker
+                    maxDate={new Date()}
                     keyboard
                     label="Fecha de emisión"
                     format="dd/MM/yyyy"
@@ -183,6 +280,7 @@ class AgregarResolucionAdmin extends Component {
                     onChange={this.handleDateChange}
                     disableOpenOnEnter
                     animateYearScrolling={false}
+                    required
                   />
                 </div>
               </FormControl>
@@ -214,32 +312,7 @@ class AgregarResolucionAdmin extends Component {
             {"Agregar resolución?"}
           </DialogTitle>
           <DialogContent>
-            <Grid container>
-              <Table className={classes.table}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>No.</TableCell>
-                    <TableCell>Documento</TableCell>
-                    <TableCell>Serie</TableCell>
-                    <TableCell>Rango</TableCell>
-                    <TableCell>Fecha</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  <TableRow key={0}>
-                    <TableCell>{this.state.nres}</TableCell>
-                    <TableCell>{this.state.doc["label"]}</TableCell>
-                    <TableCell>{this.state.serie}</TableCell>
-                    <TableCell>
-                      {this.state.inicio + " , " + this.state.fin}
-                    </TableCell>
-                    <TableCell>
-                      {formatDate(this.state.selectedDate, "dd/MM/yyyy")}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </Grid>
+            <Grid container>{this.renderTable(classes)}</Grid>
           </DialogContent>
           <DialogActions>
             <Button
@@ -250,11 +323,20 @@ class AgregarResolucionAdmin extends Component {
             >
               No
             </Button>
-            <Button onClick={this.handleDialogClose} color="primary">
+            <Button onClick={this.tryToAddRes} color="primary">
               Si
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/******MUESTRA MENSAJE DE ERROR SI NO TODO SALIO BIEN ******/}
+        <Snackbar
+          anchorOrigin={{ vertical, horizontal }}
+          open={open}
+          onClose={this.handleCloseSnack}
+          ContentProps={{ "aria-describedby": "message-id" }}
+          message={<span id="message-id">{this.state.snack.message}</span>}
+        />
       </AdminDashboard>
     );
   }

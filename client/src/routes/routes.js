@@ -8,8 +8,10 @@ import HomeSystem from "../components/system/homesystem";
 import HomeAdmin from "../components/admin/homeadmin";
 import AgregarResolucionAdmin from "../components/admin/agregarResolucion";
 import HistorialResoluiciones from "../components/admin/historialResoluciones";
+import ResolucionesActivas from "../components/admin/resolucionesActivas";
 
 import history from "../components/common/history";
+import IntRange from "../components/common/rangeInt";
 
 export default () => (
   <Router history={history}>
@@ -36,10 +38,17 @@ export default () => (
         render={props => <HistorialResoluiciones {...props} />}
       />
       <Route
+        path="/admin/resoluciones-activas"
+        exact
+        render={props => <ResolucionesActivas {...props} />}
+      />
+      <Route
         path="/system/home"
         exact
         render={props => <HomeSystem {...props} />}
       />
+
+      <Route path="/tests" exact render={props => <IntRange {...props} />} />
     </Switch>
   </Router>
 );

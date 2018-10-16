@@ -9,6 +9,7 @@
     "date-fns": "^2.0.0-alpha.16",
     "history": "^4.7.2",
     "material-ui-pickers": "^1.0.0-rc.17",
+    "query-string": "^6.2.0",
     "react": "^16.5.2",
     "react-dom": "^16.5.2",
     "react-router-dom": "^4.3.1",
