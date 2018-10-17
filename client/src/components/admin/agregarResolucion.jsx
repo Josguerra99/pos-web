@@ -246,10 +246,12 @@ class AgregarResolucionAdmin extends Component {
               </Grid>
 
               <Grid container spacing={0}>
-                <IntRange
-                  getStart={this.handleInicioChange}
-                  getEnd={this.handleFinChange}
-                />
+                <Grid item xs={6}>
+                  <IntRange
+                    getStart={this.handleInicioChange}
+                    getEnd={this.handleFinChange}
+                  />
+                </Grid>
               </Grid>
 
               <FormControl margin="normal" required fullWidth>

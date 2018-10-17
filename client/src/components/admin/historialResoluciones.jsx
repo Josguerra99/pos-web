@@ -2,14 +2,16 @@ import React, { Component } from "react";
 import AdminDashboard from "./adminDashboard";
 import PropTypes from "prop-types";
 import { withStyles } from "@material-ui/core/styles";
-import Drawer from "@material-ui/core/Drawer";
-import Button from "@material-ui/core/Button";
-import Divider from "@material-ui/core/Divider";
-import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
-import classNames from "classnames";
-import Typography from "@material-ui/core/Typography";
-import queryString from "query-string";
+import Filters from "../common/filters";
+import PaginationTable from "../common/paginationTable";
+import TableRow from "@material-ui/core/TableRow";
+
+import formatDate from "date-fns/format";
+import TableCell from "@material-ui/core/TableCell";
+import Grid from "@material-ui/core/Grid";
+import IconButton from "@material-ui/core/IconButton";
+import DownloadIcon from "@material-ui/icons/GetApp";
+import PrintIcon from "@material-ui/icons/Print";
 
 const styles = theme => ({
   list: {
@@ -23,63 +25,146 @@ const styles = theme => ({
   },
   rightIcon: {
     marginLeft: theme.spacing.unit
+  },
+  button: {
+    margin: theme.spacing.unit
   }
 });
 
+let counter = 0;
+function createData(name, calories, fat) {
+  counter += 1;
+  return { id: counter, name, calories, fat };
+}
+
 class HistorialResoluciones extends Component {
-  state = { drawer: { open: false, top: true } };
-  toggleDrawer = open => () => {
-    this.setState({
-      drawer: { open: open }
-    });
+  state = {
+    hasData: false,
+    data: []
   };
 
+  componentDidMount() {
+    this.bringResolucion();
+  }
+
+  /**
+   * Traer la resolucion de la base de datos
+   * Al traerla se creara un arreglo con map
+   * este arreglo es el que se utilizara en
+   * la tabla, tiene los datos de la base de
+   * datos pero cambiamos el documento de
+   * a palabra (FAC = Factura), se pone el
+   * formato de la fecha y se agrega un id para
+   * las filas, al final este array se guarda
+   * como un state
+   */
+  bringResolucion() {
+    //Realizar peticion get
+    fetch("/api/getResoluciones")
+      .then(res => res.json())
+      .then(data => {
+        if (data.length > 0) {
+          this.setState({
+            data: data.map((el, index) => {
+              var rango = el.Inicio + " al " + el.Fin;
+              var documento = "???";
+              if (el.Documento === "FAC") documento = "Factura";
+              if (el.Documento === "NC") documento = "Nota de Crédito";
+              if (el.Documento === "ND") documento = "Nota de Débito";
+              var fecha = formatDate(el.Fecha, "dd/MM/yyyy");
+              return {
+                id: index,
+                Num: el.Num,
+                Serie: el.Serie,
+                Documento: documento,
+                Rango: rango,
+                Fecha: fecha
+              };
+            })
+          });
+        }
+        this.setState({ hasData: true });
+      });
+  }
+
+  /*
+  Se le pasa esta funcion como props para la tabla
+   */
+  renderTableHead() {
+    return (
+      <TableRow>
+        <TableCell>Número de Resolución</TableCell>
+        <TableCell>Serie</TableCell>
+        <TableCell>Documento</TableCell>
+        <TableCell>Rango</TableCell>
+        <TableCell>Fecha</TableCell>
+      </TableRow>
+    );
+  }
+
+  /**
+   *
+   * @param {*} row
+   * Esta funcion se le pasa a la tabla para la paginacion
+   * lo hace con map y row es el parametro que le pasa
+   * map, lo que hace es crear la fila actual con los datos de
+   * rows (que son la informacion que trajimos y mapeamos anteriormente)
+   */
+  bodyMap(row) {
+    return (
+      <TableRow key={row.id}>
+        <TableCell>{row.Num}</TableCell>
+        <TableCell>{row.Serie}</TableCell>
+        <TableCell>{row.Documento}</TableCell>
+        <TableCell>{row.Rango}</TableCell>
+        <TableCell>{row.Fecha}</TableCell>
+      </TableRow>
+    );
+  }
+
+  /**
+   * Renderiza la pagina, pimero el dashboard luego filtros
+   * y luego botones de imprimir, por ultimo renderiza la tabla
+   * a la cual le pasamos la informacion de la base de datos
+   * y las dos funciones la de crear la cabecera y la de crear
+   * las filas
+   */
   render() {
     const { classes } = this.props;
 
     return (
       <AdminDashboard>
-        <Button onClick={this.toggleDrawer(true)}>
-          Filtros{" "}
-          <KeyboardArrowDownIcon
-            className={classNames(classes.iconSmall, classes.rightIcon)}
-          />
-        </Button>
-        <Drawer
-          anchor="top"
-          open={this.state.drawer.open}
-          onClose={this.toggleDrawer(false)}
-        >
-          <div
-            tabIndex={0}
-            role="button"
-            onClick={this.toggleDrawer(false)}
-            onKeyDown={this.toggleDrawer(false)}
-          />
+        <Filters />
 
-          <Button onClick={this.toggleDrawer(false)}>
-            Filtros{" "}
-            <KeyboardArrowUpIcon
-              className={classNames(classes.iconSmall, classes.rightIcon)}
-            />
-          </Button>
-          <Divider />
-          <Typography variant="h7" gutterBottom>
-            Número de resolución
-          </Typography>
+        {/* Icono de imprimir */}
+        <Grid container>
+          <Grid item xs={10} />
 
-          <Typography variant="h7" gutterBottom>
-            Serie
-          </Typography>
+          <Grid item xs={2}>
+            <IconButton
+              className={classes.button}
+              aria-label="Download"
+              color="primary"
+            >
+              <DownloadIcon />
+            </IconButton>
+            <IconButton
+              className={classes.button}
+              aria-label="Print"
+              color="primary"
+            >
+              <PrintIcon />
+            </IconButton>
+          </Grid>
+        </Grid>
 
-          <Typography variant="h7" gutterBottom>
-            Documento
-          </Typography>
-
-          <Typography variant="h7" gutterBottom>
-            Fecha de emisión
-          </Typography>
-        </Drawer>
+        {/*Tabla de datos */}
+        <PaginationTable
+          tableHead={this.renderTableHead()}
+          bodyMap={this.bodyMap}
+          rows={this.state.data}
+          columns={5}
+        />
       </AdminDashboard>
     );
   }

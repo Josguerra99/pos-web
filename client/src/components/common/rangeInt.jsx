@@ -80,7 +80,7 @@ class IntRange extends Component {
     return (
       <React.Fragment>
         <Grid container spacing={24}>
-          <Grid item xs={3}>
+          <Grid item xs={6}>
             <FormControl margin="normal" required fullWidth>
               <InputLabel htmlFor="start">Inicio</InputLabel>
               <Input
@@ -95,7 +95,7 @@ class IntRange extends Component {
               />
             </FormControl>
           </Grid>
-          <Grid item xs={3}>
+          <Grid item xs={6}>
             <FormControl margin="normal" required fullWidth>
               <InputLabel htmlFor="end">Fin</InputLabel>
               <Input

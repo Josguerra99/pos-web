@@ -11,7 +11,7 @@ import HistorialResoluiciones from "../components/admin/historialResoluciones";
 import ResolucionesActivas from "../components/admin/resolucionesActivas";
 
 import history from "../components/common/history";
-import IntRange from "../components/common/rangeInt";
+import Filter from "../components/common/filters";
 
 export default () => (
   <Router history={history}>
@@ -48,7 +48,7 @@ export default () => (
         render={props => <HomeSystem {...props} />}
       />
 
-      <Route path="/tests" exact render={props => <IntRange {...props} />} />
+      <Route path="/tests" exact render={props => <Filter {...props} />} />
     </Switch>
   </Router>
 );

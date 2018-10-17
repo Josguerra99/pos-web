@@ -113,12 +113,32 @@ app.get("/api/resolucion_activa", (req, res) => {
   );
 });
 
-///---------------Resoliciones
+app.get("/api/getResoluciones", (req, res) => {
+  //Comporbar sesion
+  if (!req.session.role || req.session.role !== "ADMIN") {
+    var resjson = [{ "@err": -1, message: "No autorizado" }];
+    res.status(401).send(resjson);
+    return;
+  }
+  Resoluciones.getResoluciones(req.session.nit_negocio, (err, data) => {
+    if (err) {
+      res
+        .status(500)
+        .send([
+          { "@err": 1, message: "Error al traer datos de la resolucion" }
+        ]);
+    } else {
+      res.status(200).send(data);
+    }
+  });
+});
 
+///---------------Resoliciones
+/*
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname + "/client/build/index.html"));
 });
-
+*/
 //Cambiar puento dinamicamente
 const port = process.env.PORT || 3001;
 app.listen(port, () => console.log(`Listening on port ${port}...`));

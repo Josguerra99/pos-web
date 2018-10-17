@@ -30,11 +30,27 @@ resolucionMngr.addResolucion = (
 resolucionMngr.getActiva = (doc, nit_negocio, callback) => {
   if (con) {
     con.query(
-      "SELECT Num, Serie,Inicio,Fin,Actual,Fecha FROM Resolucion WHERE Documento=? AND nit_negocio=? AND Activo=TRUE ",
+      "SELECT Num, Serie,Inicio,Fin,Actual,Fecha,Activo FROM Resolucion WHERE Documento=? AND nit_negocio=? AND Activo=TRUE ",
       [doc, nit_negocio],
       (err, rows) => {
         if (err) {
           console.log("Error al intentar extraer la resolucion");
+        } else {
+          callback(null, rows);
+        }
+      }
+    );
+  }
+};
+
+resolucionMngr.getResoluciones = (nit_negocio, callback) => {
+  if (con) {
+    con.query(
+      "SELECT Num, Serie,Inicio,Fin,Actual,Fecha,Documento FROM Resolucion WHERE  nit_negocio=? ",
+      [nit_negocio],
+      (err, rows) => {
+        if (err) {
+          console.log("Error al intentar extraer las resoluciones");
         } else {
           callback(null, rows);
         }
