@@ -1,5 +1,5 @@
-import pdfMakePrinter from "pdfmake/src/printer";
-import { resolve } from "path";
+const pdfMakePrinter = require("pdfmake/src/printer");
+const path = require("path");
 
 let report = {};
 
@@ -8,7 +8,13 @@ let report = {};
  * @param {String} file Nombre de la fuente
  */
 function fontPath(file) {
-  return resolve("node_modules", "roboto-fontface", "fonts", "roboto", file);
+  return path.resolve(
+    "node_modules",
+    "roboto-fontface",
+    "fonts",
+    "roboto",
+    file
+  );
 }
 
 /**

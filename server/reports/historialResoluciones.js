@@ -1,6 +1,6 @@
 const report = require("./reportDisplayer");
 const helper = require("./reporthelper");
-import formatDate from "date-fns/format";
+const formatDate = require("date-fns/format");
 
 var definition = { content: ["No se logro obtener las resoluciones "] };
 

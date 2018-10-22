@@ -1,4 +1,4 @@
-import formatDate from "date-fns/format";
+const formatDate = require("date-fns/format");
 
 let helper = {};
 

@@ -1,7 +1,7 @@
 // Transpile all code following this line with babel and use 'env' (aka ES6) preset.
-require("babel-register")({
+/*require("babel-register")({
   presets: ["env"]
-});
+});*/
 
 const express = require("express");
 const app = express();
