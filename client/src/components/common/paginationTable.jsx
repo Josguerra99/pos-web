@@ -14,6 +14,8 @@ import KeyboardArrowLeft from "@material-ui/icons/KeyboardArrowLeft";
 import KeyboardArrowRight from "@material-ui/icons/KeyboardArrowRight";
 import LastPageIcon from "@material-ui/icons/LastPage";
 import TableHead from "@material-ui/core/TableHead";
+import CircularProgress from "./circularprogress";
+import Grid from "@material-ui/core/Grid";
 
 const actionsStyles = theme => ({
   root: {
@@ -124,7 +126,8 @@ const styles = theme => ({
 class CustomPaginationActionsTable extends React.Component {
   state = {
     page: 0,
-    rowsPerPage: 5
+    rowsPerPage: 5,
+    loading: false
   };
 
   handleChangePage = (event, page) => {
@@ -134,6 +137,33 @@ class CustomPaginationActionsTable extends React.Component {
   handleChangeRowsPerPage = event => {
     this.setState({ rowsPerPage: event.target.value });
   };
+
+  renderTableBody(rows, page, rowsPerPage, emptyRows) {
+    if (this.props.loading === false) {
+      return (
+        <TableBody>
+          {rows
+            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+            .map(row => this.props.bodyMap(row))}
+          {emptyRows > 0 && (
+            <TableRow style={{ height: 48 * emptyRows }}>
+              <TableCell colSpan={6} />
+            </TableRow>
+          )}
+        </TableBody>
+      );
+    } else {
+      return (
+        <TableBody>
+          <TableCell colSpan={this.props.columns}>
+            <Grid container justify="center">
+              <CircularProgress />
+            </Grid>
+          </TableCell>
+        </TableBody>
+      );
+    }
+  }
 
   render() {
     const { classes } = this.props;
@@ -147,16 +177,7 @@ class CustomPaginationActionsTable extends React.Component {
         <div className={classes.tableWrapper}>
           <Table className={classes.table}>
             <TableHead>{this.props.tableHead}</TableHead>
-            <TableBody>
-              {rows
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map(row => this.props.bodyMap(row))}
-              {emptyRows > 0 && (
-                <TableRow style={{ height: 48 * emptyRows }}>
-                  <TableCell colSpan={6} />
-                </TableRow>
-              )}
-            </TableBody>
+            {this.renderTableBody(rows, page, rowsPerPage, emptyRows)}
             <TableFooter>
               <TableRow>
                 <TablePagination

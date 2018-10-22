@@ -110,9 +110,15 @@ class AgregarResolucionAdmin extends Component {
     this.setState({ serie: e.target.value });
   };
 
+  /**
+   * Actualiza el valor de inicio
+   */
   handleInicioChange = val => {
     this.setState({ inicio: val });
   };
+  /**
+   * Actualiza el valor final
+   */
 
   handleFinChange = val => {
     this.setState({ fin: val });

@@ -1,3 +1,8 @@
+// Transpile all code following this line with babel and use 'env' (aka ES6) preset.
+require("babel-register")({
+  presets: ["env"]
+});
+
 const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
@@ -133,12 +138,37 @@ app.get("/api/getResoluciones", (req, res) => {
   });
 });
 
+const HistorialResoluciones = require("./server/reports/historialResoluciones");
+app.get("/api/reports/historialResoluciones", (req, res) => {
+  if (!req.session.role || req.session.role !== "ADMIN") {
+    var resjson = [{ "@err": -1, message: "No autorizado" }];
+    res.status(401).send(resjson);
+    return;
+  }
+
+  Resoluciones.getResoluciones(req.session.nit_negocio, (err, data) => {
+    if (err) {
+      res
+        .status(500)
+        .send([
+          { "@err": 1, message: "Error al traer datos de la resolucion" }
+        ]);
+    } else {
+      HistorialResoluciones.createContent(req.session, data);
+      HistorialResoluciones.print(response => {
+        res.setHeader("Content-Type", "application/pdf");
+        res.send(response); // Buffer data
+      });
+    }
+  });
+});
 ///---------------Resoliciones
 
+/*
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname + "/client/build/index.html"));
 });
-
+*/
 //Cambiar puento dinamicamente
 const port = process.env.PORT || 3001;
 app.listen(port, () => console.log(`Listening on port ${port}...`));

@@ -15,11 +15,17 @@
   "dependencies": {
     "body-parser": "^1.18.3",
     "concurrently": "^4.0.1",
+    "date-fns": "^1.29.0",
     "express": "^4.16.4",
     "express-session": "^1.15.6",
-    "mysql": "^2.16.0"
+    "fluentreports": "^1.2.2",
+    "mysql": "^2.16.0",
+    "pdfmake": "^0.1.38",
+    "roboto-fontface": "^0.10.0"
   },
   "devDependencies": {
+    "babel-preset-env": "^1.7.0",
+    "babel-register": "^6.26.0",
     "nodemon": "^1.18.4"
   }
 }

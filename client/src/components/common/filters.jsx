@@ -42,12 +42,32 @@ const select = [
 ];
 
 class Filters extends Component {
-  state = { drawer: { open: false, top: true } };
+  state = { drawer: { open: false, top: true }, filters: [] };
 
+  /**
+   * Guarda los filtros activos en objetos, estos se mandan al backend
+   * para que este sepa que datos filtrar
+   */
+
+  constructor(props) {
+    super(props);
+    this.inicio = React.createRef();
+  }
+
+  getFilters() {
+    JSON.stringify(this.inicio.current.getFilter());
+  }
+
+  /**
+   * Abre o cierra el menu de filtros
+   */
   toggleDrawer = open => () => {
     this.setState({
       drawer: { open: open }
     });
+    if (!open) {
+      this.getFilters();
+    }
   };
 
   render() {
@@ -90,8 +110,13 @@ class Filters extends Component {
           />
           <FilterSearch name={"Número de resolución"} label={"Resolución"} />
           <FilterSearch name={"Serie"} label={"Serie"} />
-          <FilterNumberRange name={"Rango"} />
-          <FilterNumberRange name={"Fecha"} />
+          <FilterNumberRange
+            name={"Inicio"}
+            label={"Valor"}
+            ref={this.inicio}
+          />
+          <FilterNumberRange name={"Fin"} label={"Valor"} />
+          <FilterNumberRange name={"Fecha"} label={"Date"} />
         </Drawer>
       </React.Fragment>
     );

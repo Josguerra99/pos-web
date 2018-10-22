@@ -13,6 +13,9 @@ import IconButton from "@material-ui/core/IconButton";
 import DownloadIcon from "@material-ui/icons/GetApp";
 import PrintIcon from "@material-ui/icons/Print";
 
+import ReportMngr from "../common/reporter/reportMngr";
+const reportmngr = new ReportMngr();
+
 const styles = theme => ({
   list: {
     width: 250
@@ -40,11 +43,15 @@ function createData(name, calories, fat) {
 class HistorialResoluciones extends Component {
   state = {
     hasData: false,
-    data: []
+    data: [],
+    printURL: null
   };
 
   componentDidMount() {
     this.bringResolucion();
+    reportmngr.openReport("historialResoluciones", fireURL => {
+      this.setState({ printURL: fireURL });
+    });
   }
 
   /**
@@ -136,7 +143,7 @@ class HistorialResoluciones extends Component {
       <AdminDashboard>
         <Filters />
 
-        {/* Icono de imprimir */}
+        {/* Icono de descargar e imprimir */}
         <Grid container>
           <Grid item xs={10} />
 
@@ -145,6 +152,7 @@ class HistorialResoluciones extends Component {
               className={classes.button}
               aria-label="Download"
               color="primary"
+              onClick={() => reportmngr.downloadReport("historialResoluciones")}
             >
               <DownloadIcon />
             </IconButton>
@@ -152,6 +160,8 @@ class HistorialResoluciones extends Component {
               className={classes.button}
               aria-label="Print"
               color="primary"
+              onClick={() => window.open(this.state.printURL).print()}
+              disabled={this.state.printURL === null}
             >
               <PrintIcon />
             </IconButton>
@@ -164,6 +174,7 @@ class HistorialResoluciones extends Component {
           bodyMap={this.bodyMap}
           rows={this.state.data}
           columns={5}
+          loading={!this.state.hasData}
         />
       </AdminDashboard>
     );
