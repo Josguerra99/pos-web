@@ -164,11 +164,10 @@ app.get("/api/reports/historialResoluciones", (req, res) => {
 });
 ///---------------Resoliciones
 
-/*
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname + "/client/build/index.html"));
 });
-*/
+
 //Cambiar puento dinamicamente
 const port = process.env.PORT || 3001;
 app.listen(port, () => console.log(`Listening on port ${port}...`));
