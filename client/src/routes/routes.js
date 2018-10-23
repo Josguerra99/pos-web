@@ -13,6 +13,8 @@ import ResolucionesActivas from "../components/admin/resolucionesActivas";
 import history from "../components/common/history";
 import Filter from "../components/common/filters";
 
+import WarningMessage from "../components/common/warningMessage";
+
 export default () => (
   <Router history={history}>
     <Switch>
@@ -48,7 +50,11 @@ export default () => (
         render={props => <HomeSystem {...props} />}
       />
 
-      <Route path="/tests" exact render={props => <Filter {...props} />} />
+      <Route
+        path="/tests"
+        exact
+        render={props => <WarningMessage {...props} />}
+      />
     </Switch>
   </Router>
 );

@@ -2,6 +2,22 @@ const con = require("../database/db-con");
 
 let resolucionMngr = {};
 
+resolucionMngr.getResolucionReplace = (doc, nit_negocio, callback) => {
+  if (con) {
+    con.query(
+      "SELECT Num, Actual, Fin FROM Resolucion WHERE Documento=? AND nit_negocio=? AND Activo=TRUE AND Actual<Fin ",
+      [doc, nit_negocio],
+      (err, rows) => {
+        if (err) {
+          console.log("Error al intentar extraer la resolucion");
+        } else {
+          callback(null, rows);
+        }
+      }
+    );
+  }
+};
+
 resolucionMngr.addResolucion = (
   num,
   serie,

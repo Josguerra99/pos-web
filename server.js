@@ -118,6 +118,30 @@ app.get("/api/resolucion_activa", (req, res) => {
   );
 });
 
+app.get("/api/getReplaceResolucion", (req, res) => {
+  if (!req.session.role || req.session.role !== "ADMIN") {
+    var resjson = [{ "@err": -1, message: "No autorizado" }];
+    res.status(401).send(resjson);
+    return;
+  }
+
+  Resoluciones.getResolucionReplace(
+    req.query.doc,
+    req.session.nit_negocio,
+    (err, data) => {
+      if (err) {
+        res
+          .status(500)
+          .send([
+            { "@err": 1, message: "Error al traer datos de la resolucion" }
+          ]);
+      } else {
+        res.status(200).send(data);
+      }
+    }
+  );
+});
+
 app.get("/api/getResoluciones", (req, res) => {
   //Comporbar sesion
   if (!req.session.role || req.session.role !== "ADMIN") {

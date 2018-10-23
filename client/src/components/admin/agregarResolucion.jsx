@@ -27,6 +27,7 @@ import IntRange from "../common/rangeInt";
 import FormHelperText from "@material-ui/core/FormHelperText";
 import Snackbar from "@material-ui/core/Snackbar";
 import history from "../common/history";
+import WarningMessage from "../common/warningMessage";
 
 class AgregarResolucionAdmin extends Component {
   state = {
@@ -43,7 +44,8 @@ class AgregarResolucionAdmin extends Component {
       vertical: "bottom",
       horizontal: "right",
       message: ""
-    }
+    },
+    replaceRes: null
   };
   constructor() {
     super();
@@ -51,7 +53,23 @@ class AgregarResolucionAdmin extends Component {
     this.tryToAddRes = this.tryToAddRes.bind(this);
   }
 
-  componentDidMount() {}
+  /**
+   * Cada vez que se cambie el tipo de documento
+   * esta funcion va a traer la resolucion que se va a reemplazar
+   * si existe
+   */
+
+  bringReplaceResolution(doc) {
+    fetch("/api/getReplaceResolucion?doc=" + doc.value)
+      .then(res => res.json())
+      .then(data => {
+        if (data.length > 0) {
+          this.setState({ replaceRes: data[0] });
+        } else {
+          this.setState({ replaceRes: null });
+        }
+      });
+  }
 
   tryToAddRes() {
     const fecha = formatDate(this.state.selectedDate, "yyyy/MM/dd");
@@ -98,9 +116,27 @@ class AgregarResolucionAdmin extends Component {
     this.handleDialogOpen();
   }
 
+  /**
+   * Dependiendo si se va a reemplazar o no
+   * vamos a tener un mensaje de advertencia
+   */
+  getReplaceMessage() {
+    if (this.state.replaceRes !== null) {
+      const { replaceRes } = this.state;
+      return ` Esta resolución va a reemplazar a ${
+        replaceRes.Num
+      } que todavia esta en uso, lleva ${replaceRes.Actual} de ${
+        replaceRes.Fin
+      }`;
+    } else {
+      return "None";
+    }
+  }
+
   /*****************EVENTS*/
   handleDocChange = value => {
     this.setState({ doc: value });
+    this.bringReplaceResolution(value);
   };
 
   handleNResChange = e => {
@@ -159,6 +195,7 @@ class AgregarResolucionAdmin extends Component {
 
   /*****************EVENTS*/
 
+  /***************Dynamic renders */
   renderTable(classes) {
     if (this.state.dialog.open)
       return (
@@ -187,6 +224,19 @@ class AgregarResolucionAdmin extends Component {
           </TableBody>
         </Table>
       );
+  }
+
+  renderWarning() {
+    if (this.state.replaceRes !== null) {
+      return (
+        <React.Fragment>
+          <Grid container />
+          <Grid container className={this.props.classes.warning}>
+            <WarningMessage message={this.getReplaceMessage()} />
+          </Grid>
+        </React.Fragment>
+      );
+    }
   }
 
   /*****************CREAR LA PAGINA*/
@@ -236,6 +286,7 @@ class AgregarResolucionAdmin extends Component {
                       id="nresolucion"
                       name="nresolucion"
                       onBlur={this.handleNResChange}
+                      autoComplete="off"
                     />
                   </FormControl>
                 </Grid>
@@ -246,6 +297,7 @@ class AgregarResolucionAdmin extends Component {
                       id="serie"
                       name="serie"
                       onBlur={this.handleSerieChange}
+                      autoComplete="off"
                     />
                   </FormControl>
                 </Grid>
@@ -321,6 +373,7 @@ class AgregarResolucionAdmin extends Component {
           </DialogTitle>
           <DialogContent>
             <Grid container>{this.renderTable(classes)}</Grid>
+            {this.renderWarning()}
           </DialogContent>
           <DialogActions>
             <Button

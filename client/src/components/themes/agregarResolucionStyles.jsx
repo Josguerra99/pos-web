@@ -34,5 +34,11 @@ export default theme => ({
   },
   dialog: {
     width: "80%"
+  },
+  warning: {
+    paddingTop: 20,
+    marginTop: 20,
+    display: "flex",
+    justifyContent: "center"
   }
 });
