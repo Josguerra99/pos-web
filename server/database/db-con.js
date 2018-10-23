@@ -1,6 +1,6 @@
 /**Data base connection**/
 const mysql = require("mysql");
-/*
+
 const con = mysql.createConnection({
   host: "sql9.freemysqlhosting.net",
   database: "sql9261239",
@@ -8,7 +8,7 @@ const con = mysql.createConnection({
   password: "Rb2JzKiQ2P",
   multipleStatements: true
 });
-*/
+/*
 
 const con = mysql.createConnection({
   host: "localhost",
@@ -17,5 +17,5 @@ const con = mysql.createConnection({
   password: "",
   multipleStatements: true
 });
-
+*/
 module.exports = con;
