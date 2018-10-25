@@ -9,7 +9,7 @@ import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import Input from "@material-ui/core/Input";
 import Typography from "@material-ui/core/Typography";
-import { DatePicker } from "material-ui-pickers";
+import DatePicker from "material-ui-pickers/DatePicker";
 import Grid from "@material-ui/core/Grid";
 import styles from "../themes/agregarResolucionStyles";
 import Dialog from "@material-ui/core/Dialog";
