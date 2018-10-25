@@ -17,7 +17,7 @@ app.use(bodyParser.json());
 
 app.use(
   session({
-    secret: "super-top-secret-tengo-que-quitarlo-de-aqui-:'v",
+    secret: "super-top-secret-tengo-que-quitarlo-de-aqui-:'v a",
     resave: false,
     saveUninitialized: true
   })
