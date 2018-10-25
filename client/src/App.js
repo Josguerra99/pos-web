@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import Routes from "./routes/routes";
 import MuiPickersUtilsProvider from "material-ui-pickers/utils/MuiPickersUtilsProvider";
-import DateFnsUtils from "material-ui-pickers/utils/date-fns-utils";
+import MuiPickersUtilsProvider from "material-ui-pickers/MuiPickersUtilsProvider";
 
 class App extends Component {
   render() {
