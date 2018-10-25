@@ -29,6 +29,12 @@ import Snackbar from "@material-ui/core/Snackbar";
 import history from "../common/history";
 import WarningMessage from "../common/warningMessage";
 
+const suggestions = [
+  { value: "FAC", label: "Factura" },
+  { value: "NC", label: "Nota de crédito" },
+  { value: "ND", label: "Nota de débito" }
+];
+
 class AgregarResolucionAdmin extends Component {
   state = {
     doc: null,
@@ -269,7 +275,10 @@ class AgregarResolucionAdmin extends Component {
                 <AutoComplete
                   name="Tipo de documento"
                   onChange={this.handleDocChange}
-                  autoFocus
+                  autoFocus={true}
+                  suggestions={suggestions}
+                  placeholder={"Selecciona un documento"}
+                  value={this.state.doc}
                 />
                 {hasErrorsDoc && (
                   <FormHelperText>Campo requerido!</FormHelperText>

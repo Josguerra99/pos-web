@@ -13,7 +13,7 @@ import ResolucionesActivas from "../components/admin/resolucionesActivas";
 import history from "../components/common/history";
 import Filter from "../components/common/filters";
 
-import WarningMessage from "../components/common/warningMessage";
+import TableMngr from "../components/admin/inventory/inventoryMngr";
 
 export default () => (
   <Router history={history}>
@@ -50,11 +50,7 @@ export default () => (
         render={props => <HomeSystem {...props} />}
       />
 
-      <Route
-        path="/tests"
-        exact
-        render={props => <WarningMessage {...props} />}
-      />
+      <Route path="/tests" exact render={props => <TableMngr {...props} />} />
     </Switch>
   </Router>
 );

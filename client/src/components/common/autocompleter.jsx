@@ -11,14 +11,6 @@ import Chip from "@material-ui/core/Chip";
 import MenuItem from "@material-ui/core/MenuItem";
 import CancelIcon from "@material-ui/icons/Cancel";
 import { emphasize } from "@material-ui/core/styles/colorManipulator";
-const suggestions = [
-  { id: "FAC", label: "Factura" },
-  { id: "NC", label: "Nota de crédito" },
-  { id: "ND", label: "Nota de débito" }
-].map(suggestion => ({
-  value: suggestion.id,
-  label: suggestion.label
-}));
 
 const styles = theme => ({
   root: {
@@ -59,7 +51,7 @@ const styles = theme => ({
   },
   paper: {
     position: "absolute",
-    zIndex: 1,
+    zIndex: 2000,
     marginTop: theme.spacing.unit,
     left: 0,
     right: 0
@@ -194,13 +186,10 @@ class AutoComplete extends React.Component {
 
   handleChange = value => {
     this.props.onChange(value);
-    this.setState({
-      value
-    });
   };
 
   render() {
-    const { classes, theme } = this.props;
+    const { classes, theme, value } = this.props;
     const LabelText = this.props.name;
     const selectStyles = {
       input: base => ({
@@ -219,16 +208,16 @@ class AutoComplete extends React.Component {
           required
           classes={classes}
           styles={selectStyles}
-          options={suggestions}
+          options={this.props.suggestions}
           components={components}
-          value={this.state.single}
+          value={value}
           onChange={this.handleChange}
-          placeholder="Selecciona un documento"
+          placeholder={this.props.placeholder}
           textFieldProps={{
             label: LabelText,
             InputLabelProps: { shrink: true }
           }}
-          autoFocus
+          autoFocus={this.props.autoFocus}
         />
       </NoSsr>
     );
