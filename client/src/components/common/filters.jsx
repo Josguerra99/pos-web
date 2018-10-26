@@ -57,7 +57,6 @@ class Filters extends Component {
   getFilters() {
     JSON.stringify(this.inicio.current.getFilter());
   }
-
   /**
    * Abre o cierra el menu de filtros
    */

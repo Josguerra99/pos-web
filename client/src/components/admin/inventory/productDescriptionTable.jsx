@@ -24,8 +24,25 @@ class ProductDescriptionTable extends Component {
 
   constructor(props) {
     super(props);
-    this.state.data = props.data;
+    if (props.data != null && props.data.length > 0) {
+      this.state.data = props.data;
+    } else {
+      this.state.data = [];
+    }
+    // this.updateData(props);
   }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (prevProps.data !== this.props.data) {
+      var data = [];
+      if (this.props.data != null) {
+        data = this.props.data;
+      }
+      this.setState({ data });
+      this.setState({ hasData: true });
+    }
+  }
+
   /**
    * Events
    */
@@ -44,6 +61,30 @@ class ProductDescriptionTable extends Component {
 
   syncMemoryData = data => {
     this.setState({ data });
+  };
+
+  /**
+   * Values
+   */
+  onInsert = callback => {
+    if (this.props.onInsert != null) {
+      this.props.onInsert(
+        this.state.tempElement.descripcion,
+        "DESCRIPCION",
+        callback
+      );
+    } else callback(0);
+  };
+
+  onUpdate = callback => {
+    if (this.props.onUpdate != null) {
+      this.props.onUpdate(
+        "DESCRIPCION",
+        this.state.tempElement.idDescripcion,
+        this.state.tempElement.descripcion,
+        callback
+      );
+    } else callback(0);
   };
 
   /**
@@ -103,6 +144,8 @@ class ProductDescriptionTable extends Component {
         syncTemp={this.syncTemp}
         tempElement={this.state.tempElement}
         dialogName="descripción"
+        onInsert={this.onInsert}
+        onUpdate={this.onUpdate}
         columns={1}
       />
     );

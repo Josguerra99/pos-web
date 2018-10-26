@@ -155,11 +155,13 @@ class CustomPaginationActionsTable extends React.Component {
     } else {
       return (
         <TableBody>
-          <TableCell colSpan={this.props.columns}>
-            <Grid container justify="center">
-              <CircularProgress />
-            </Grid>
-          </TableCell>
+          <TableRow>
+            <TableCell colSpan={this.props.columns}>
+              <Grid container justify="center">
+                <CircularProgress />
+              </Grid>
+            </TableCell>
+          </TableRow>
         </TableBody>
       );
     }

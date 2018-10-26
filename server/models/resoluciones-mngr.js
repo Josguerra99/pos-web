@@ -34,6 +34,7 @@ resolucionMngr.addResolucion = (
       [num, serie, inicio, fin, documento, nit, fecha],
       (err, rows) => {
         if (err) {
+          //Nunca entrara aqui ya que el procedimiento es el que maneja los errores
           console.log("Error ingresando la resolucion");
         } else {
           callback(null, rows[2][0]);

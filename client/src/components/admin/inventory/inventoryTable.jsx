@@ -14,9 +14,9 @@ class InventoryTable extends Component {
       marca: null,
       nombre: null,
       descripcion: null,
-      stock: "",
       presentacion: null,
       unidades: "",
+      stock: 0,
       precioActual: "",
       delete: false
     }
@@ -24,51 +24,55 @@ class InventoryTable extends Component {
 
   constructor(props) {
     super(props);
-    this.state.data = props.data.map(el => {
-      var element = { ...el };
-      element.marca = {
-        value: el.marca,
-        label: this.getElementData(
-          this.props.brandData,
-          "codigo",
-          el.marca,
-          "marca"
-        )
-      };
-
-      element.nombre = {
-        value: el.nombre,
-        label: this.getElementData(
-          this.props.nameData,
-          "codigo",
-          el.nombre,
-          "nombre"
-        )
-      };
-
-      element.descripcion = {
-        value: el.descripcion,
-        label: this.getElementData(
-          this.props.descriptionData,
-          "codigo",
-          el.descripcion,
-          "descripcion"
-        )
-      };
-
-      element.presentacion = {
-        value: el.presentacion,
-        label: this.getElementData(
-          this.props.measurmentData,
-          "codigo",
-          el.presentacion,
-          "presentacion"
-        )
-      };
-
-      return element;
-    });
+    if (props.data != null && props.data.length > 0) {
+      this.state.data = props.data;
+    } else {
+      this.state.data = [];
+    }
+    // this.updateData(props);
   }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (prevProps.data !== this.props.data) {
+      var data = [];
+      if (this.props.data != null) {
+        data = this.props.data;
+      }
+      this.setState({ data });
+      this.setState({ hasData: true });
+    }
+  }
+
+  onInsert = callback => {
+    if (this.props.onInsert != null) {
+      const inv = {
+        codigo: this.state.tempElement.codigo,
+        idMarca: this.state.tempElement.marca.value,
+        idNombre: this.state.tempElement.nombre.value,
+        idDescripcion: this.state.tempElement.descripcion.value,
+        idPresentacion: this.state.tempElement.presentacion.value,
+        unidades: this.state.tempElement.unidades,
+        precioActual: this.state.tempElement.precioActual
+      };
+      this.props.onInsert(inv, callback);
+    } else callback(0);
+  };
+
+  onUpdate = callback => {
+    if (this.props.onUpdate != null) {
+      const inv = {
+        codigo: this.state.tempElement.codigo,
+        idMarca: this.state.tempElement.marca.value,
+        idNombre: this.state.tempElement.nombre.value,
+        idDescripcion: this.state.tempElement.descripcion.value,
+        idPresentacion: this.state.tempElement.presentacion.value,
+        unidades: this.state.tempElement.unidades,
+        precioActual: this.state.tempElement.precioActual
+      };
+
+      this.props.onUpdate(inv, callback);
+    } else callback(0);
+  };
 
   /**
    * Events
@@ -82,12 +86,6 @@ class InventoryTable extends Component {
   handleUnidades = e => {
     const tempElement = { ...this.state.tempElement };
     tempElement.unidades = e.target.value;
-    this.setState({ tempElement });
-  };
-
-  handleStock = e => {
-    const tempElement = { ...this.state.tempElement };
-    tempElement.stock = e.target.value;
     this.setState({ tempElement });
   };
 
@@ -207,9 +205,9 @@ class InventoryTable extends Component {
               placeholder="Elija la marca"
               value={this.state.tempElement.marca}
               onChange={this.handleMarcaChange}
-              suggestions={this.props.brandData.map(el => {
+              suggestions={this.props.datosMarca.map(el => {
                 const element = {};
-                element.value = el.codigo;
+                element.value = el.idMarca;
                 element.label = el.marca;
                 return element;
               })}
@@ -221,9 +219,9 @@ class InventoryTable extends Component {
               placeholder="Elija el nombre"
               value={this.state.tempElement.nombre}
               onChange={this.handleNombreChange}
-              suggestions={this.props.nameData.map(el => {
+              suggestions={this.props.datosNombre.map(el => {
                 const element = {};
-                element.value = el.codigo;
+                element.value = el.idNombre;
                 element.label = el.nombre;
                 return element;
               })}
@@ -236,9 +234,9 @@ class InventoryTable extends Component {
             placeholder="Elija la descripción"
             onChange={this.handleDescripcionChange}
             value={this.state.tempElement.descripcion}
-            suggestions={this.props.descriptionData.map(el => {
+            suggestions={this.props.datosDescripcion.map(el => {
               const element = {};
-              element.value = el.codigo;
+              element.value = el.idDescripcion;
               element.label = el.descripcion;
               return element;
             })}
@@ -251,9 +249,9 @@ class InventoryTable extends Component {
               name="Presentación"
               placeholder="Elija la presentación"
               onChange={this.handlePresentacionChange}
-              suggestions={this.props.measurmentData.map(el => {
+              suggestions={this.props.datosPresentacion.map(el => {
                 const element = {};
-                element.value = el.codigo;
+                element.value = el.idPresentacion;
                 element.label = el.presentacion;
                 return element;
               })}
@@ -271,17 +269,7 @@ class InventoryTable extends Component {
             />
           </Grid>
         </Grid>
-        <Grid item xs={12} style={{ padding: 10 }}>
-          <TextField
-            margin="dense"
-            id="name"
-            label="Stock"
-            autoComplete="false"
-            value={this.state.tempElement.stock}
-            onChange={this.handleStock}
-            fullWidth
-          />
-        </Grid>
+
         <Grid item xs={12} style={{ padding: 10 }}>
           <TextField
             margin="dense"
@@ -310,6 +298,8 @@ class InventoryTable extends Component {
         syncTemp={this.syncTemp}
         tempElement={this.state.tempElement}
         columns={8}
+        onInsert={this.onInsert}
+        onUpdate={this.onUpdate}
       />
     );
   }

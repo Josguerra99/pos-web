@@ -30,7 +30,8 @@ class TableMngr extends Component {
   state = {
     action: "ADD",
     selectedID: null,
-    hasData: true,
+    data: [],
+    hasData: false,
     tempElement: undefined,
     dialogIsOpen: false,
     dialogName: "producto",
@@ -42,23 +43,60 @@ class TableMngr extends Component {
     if (props.dialogName) this.state.dialogName = props.dialogName;
     this.state.elementStructure = props.elementStructure;
     this.state.tempElement = { ...this.state.elementStructure };
-    this.state.data = props.data.map((el, id) => {
+    this.state.hasData = false;
+    //Ver si los datos ya estan pasados
+    if (props.data !== null && props.data.length > 0) {
+      const data = this.mapData(this.props.data);
+      this.state.data = data;
+      this.state.hasData = true;
+    }
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (prevProps.data !== this.props.data) {
+      var data = [];
+      if (this.props.data != null) {
+        data = this.mapData(this.props.data);
+      }
+      this.setState({ data });
+      this.setState({ hasData: true });
+    }
+  }
+
+  /**
+   * Mapear elemento (le va a agregar un elemento id)
+   */
+  mapData = data => {
+    return data.map((el, id) => {
       var element = { ...el };
       element.id = id;
       return element;
     });
-  }
-  componentDidMount() {}
+  };
 
   /**
    * Agrega un nuevo elemento
    */
-  addElement = () => {
+  addElementCallback = () => {
     if (this.state.action != "ADD") return;
+
+    if (this.props.onInsert != null) {
+      this.props.onInsert(err => {
+        if (err === 0) {
+          this.addElement();
+        }
+      });
+    } else {
+      this.addElement();
+    }
+  };
+
+  addElement = () => {
+    this.handleDialogOpen(false);
     let data = this.state.data;
     const element = this.props.tempElement;
     element.id = data.length;
-    data.push({ ...element });
+    data.unshift({ ...element });
     this.setState({ data });
     if (this.props.syncData) this.props.syncData(data);
   };
@@ -67,9 +105,22 @@ class TableMngr extends Component {
    * Edita el elemento que tiene el id en la tabla/arreglo
    * @param {Integer} id El id de la fila en la que esta el elemento
    */
-  editElement = () => {
+  editElementCallback = () => {
     if (this.state.action != "EDIT") return;
 
+    if (this.props.onUpdate != null)
+      this.props.onUpdate(err => {
+        if (err === 0) {
+          this.editElement();
+        }
+      });
+    else {
+      this.editElement();
+    }
+  };
+
+  editElement = () => {
+    this.handleDialogOpen(false);
     const id = this.state.selectedID;
     const data = [...this.state.data];
     const element = { ...this.props.tempElement };
@@ -78,6 +129,7 @@ class TableMngr extends Component {
     this.setState({ data });
     if (this.props.syncData) this.props.syncData(data);
   };
+
   /**
    * ELimina el elemento que tiene el id en la tabla/arreglo
    * @param {Integer} id El id de la fila en la que esta el elemento
@@ -131,15 +183,11 @@ class TableMngr extends Component {
   };
 
   handleDialogOk = () => {
-    this.handleDialogOpen(false);
-    if (this.state.action === "ADD") this.addElement();
-    if (this.state.action === "EDIT") this.editElement();
-    if (this.state.action === "DELETE") this.deleteElement();
+    if (this.state.action === "ADD") this.addElementCallback();
+    if (this.state.action === "EDIT") this.editElementCallback();
+    if (this.state.action === "DELETE{") this.deleteElement();
   };
 
-  /*
-    Se le pasa esta funcion como props para la tabla
-     */
   renderTableHead() {
     return (
       <TableRow>
@@ -171,7 +219,7 @@ class TableMngr extends Component {
           >
             <EditIcon />
           </IconButton>
-          <IconButton
+          {/*<IconButton
             color="secondary"
             aria-label="Add an alarm"
             onClick={() => {
@@ -179,7 +227,7 @@ class TableMngr extends Component {
             }}
           >
             <DeleteIcon />
-          </IconButton>
+          </IconButton>*/}
         </TableCell>
       </TableRow>
     );

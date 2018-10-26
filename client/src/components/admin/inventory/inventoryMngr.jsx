@@ -37,116 +37,248 @@ const styles = theme => ({
 class InventoryMngr extends Component {
   state = {
     value: "inv",
-    inventoryData: [
-      {
-        codigo: "5901234123457",
-        marca: "A",
-        nombre: "A",
-        descripcion: "A",
-        stock: 500,
-        presentacion: "A",
-        unidades: 1,
-        precioActual: "30",
-        delete: false
-      },
-      {
-        codigo: "8401010101015",
-        marca: "B",
-        nombre: "B",
-        descripcion: "B",
-        stock: 20,
-        presentacion: "A",
-        unidades: 1,
-        precioActual: "10",
-        delete: false
+    datosInventario: [],
+    datosPresentacion: [],
+    datosMarca: [],
+    datosDescripcion: [],
+    datosNombre: []
+  };
+
+  componentDidMount() {
+    this.bringAllData();
+  }
+
+  /**
+   * Funciones para traer datos
+   */
+  async bringAllData() {
+    this.setState({ datosInventario: [] });
+    this.setState({ datosNombre: [] });
+    this.setState({ datosDescripcion: [] });
+    this.setState({ datosPresentacion: [] });
+    this.setState({ datosMarca: [] });
+    await this.bringHelpersParallel().then(() => {
+      Promise.resolve(this.bringInventory());
+    });
+  }
+
+  /**
+   * Va a traer los datos de marca, nombre, etc en paralelo
+   * para que cuando estos se terminen se pueda llamar el inventario
+   */
+  bringHelpersParallel = () => {
+    return Promise.all([
+      this.bringHelpers("datosNombre", "NOMBRE"),
+      this.bringHelpers("datosDescripcion", "DESCRIPCION"),
+      this.bringHelpers("datosPresentacion", "PRESENTACION"),
+      this.bringHelpers("datosMarca", "MARCA")
+    ]);
+  };
+
+  /**
+   * Va a traer los datos de ayuda para el inventario (las tablas de marca, nombre, presentacio y descripcion)
+   * @param {*} stateName nombre del estado a cambiar
+   * @param {*} type tipo de helper a traer (MARCA/DESCRIPCION/NOMBRE/PRESENTACION)
+   */
+  bringHelpers(stateName, type) {
+    //Realizar peticion get
+    return fetch("/api/getInventoryHelper?type=" + type)
+      .then(res => res.json())
+      .then(data => {
+        if (data.length > 0) {
+          this.setState({ [stateName]: data });
+        } else {
+          this.setState({ [stateName]: null });
+        }
+        this.setState({ hasData: true });
+      });
+  }
+
+  /**
+   * Encargado de ir a traer el inventario completo a la db
+   */
+  bringInventory() {
+    //Realizar peticion get
+    return fetch("/api/getInventory")
+      .then(res => res.json())
+      .then(data => {
+        if (data.length > 0) {
+          this.updateData(data);
+        } else {
+          this.setState({ datosInventario: null });
+        }
+        this.setState({ hasData: true });
+      });
+  }
+
+  /**
+   * Funciones para insertar los datos
+   * @param {*} name nombre del dato que se va a insertar
+   * @param {*} type tipo de helper a traer (MARCA/DESCRIPCION/NOMBRE/PRESENTACION)
+   */
+  addHelper = (name, type, callback) => {
+    const requestData = {
+      type: type,
+      name: name
+    };
+    fetch("/api/addInventoryHelper", {
+      method: "POST",
+      body: JSON.stringify(requestData),
+      headers: {
+        "Content-Type": "application/json"
       }
-    ],
-    measurmentData: [
-      {
-        codigo: "A",
-        presentacion: "Unidad",
-        delete: false
-      },
-      {
-        codigo: "B",
-        presentacion: "Caja",
-        delete: false
+    })
+      .then(res => res.json())
+      .then(data => {
+        var err = data["@err"];
+        callback(parseInt(err));
+      });
+  };
+
+  addInventory = (inv, callback) => {
+    const requestData = {
+      codigo: inv.codigo,
+      idMarca: inv.idMarca,
+      idNombre: inv.idNombre,
+      idDescripcion: inv.idDescripcion,
+      idPresentacion: inv.idPresentacion,
+      unidades: inv.unidades,
+      precioActual: inv.precioActual
+    };
+    fetch("/api/addInventory", {
+      method: "POST",
+      body: JSON.stringify(requestData),
+      headers: {
+        "Content-Type": "application/json"
       }
-    ],
-    brandData: [
-      {
-        codigo: "A",
-        marca: "Yale",
-        delete: false
-      },
-      {
-        codigo: "B",
-        marca: "Siemens",
-        delete: false
-      },
-      {
-        codigo: "C",
-        marca: "STIHL",
-        delete: false
+    })
+      .then(res => res.json())
+      .then(data => {
+        var err = data["@err"];
+        callback(parseInt(err));
+      });
+  };
+
+  editHelper = (type, id, name, callback) => {
+    const requestData = {
+      type: type,
+      id: id,
+      name: name
+    };
+    fetch("/api/editInventoryHelper", {
+      method: "POST",
+      body: JSON.stringify(requestData),
+      headers: {
+        "Content-Type": "application/json"
       }
-    ],
-    descriptionData: [
-      {
-        codigo: "A",
-        descripcion: "30 watts",
-        delete: false
-      },
-      {
-        codigo: "B",
-        descripcion: "Amarillos",
-        delete: false
-      },
-      {
-        codigo: "C",
-        descripcion: "Blancos",
-        delete: false
+    })
+      .then(res => res.json())
+      .then(data => {
+        var err = data["@err"];
+        callback(parseInt(err));
+      });
+  };
+
+  editInventory = (inv, callback) => {
+    const requestData = {
+      codigo: inv.codigo,
+      idMarca: inv.idMarca,
+      idNombre: inv.idNombre,
+      idDescripcion: inv.idDescripcion,
+      idPresentacion: inv.idPresentacion,
+      unidades: inv.unidades,
+      precioActual: inv.precioActual
+    };
+    fetch("/api/editInventory", {
+      method: "POST",
+      body: JSON.stringify(requestData),
+      headers: {
+        "Content-Type": "application/json"
       }
-    ],
-    nameData: [
-      {
-        codigo: "A",
-        nombre: "Bombillo",
-        delete: false
-      },
-      {
-        codigo: "B",
-        nombre: "Lentes de seguridad",
-        delete: false
-      },
-      {
-        codigo: "C",
-        nombre: "Cinta industrial",
-        delete: false
-      },
-      {
-        codigo: "D",
-        nombre: "Taladro",
-        delete: false
-      },
-      {
-        codigo: "E",
-        nombre: "Generador electrico",
-        delete: false
-      },
-      {
-        codigo: "F",
-        nombre: "Stepper",
-        delete: false
-      },
-      {
-        codigo: "G",
-        nombre: "Multimetro",
-        delete: false
-      }
-    ]
+    })
+      .then(res => res.json())
+      .then(data => {
+        var err = data["@err"];
+        callback(parseInt(err));
+      });
+  };
+
+  /**
+   * Filtra un elemento (que sea igual) y retorna la primera columna
+   * que obtuvo el filtrado
+   *
+   * @param {Array} data Array de datos que se utilizara
+   * @param {String} idName Nombre de la columna en la que se va a comparar
+   * @param {*} id Dato que se va a comparar para filtrar
+   * @param {string} column Columna que se va a retornar
+   */
+  getElementData(data, idName, id, column) {
+    const result = data.filter(el => el[idName] == id);
+    if (result.length > 0) return result[0][column];
+  }
+
+  /**
+   * Va a colocar el state de datosinventario, para eso
+   * va a mapear los datos que le pase para poder pasarle
+   * en conjunto por ejemplo la marca, con su nombre y su id
+   * en lugar de tener solo el id
+   * @param {Array} data los datos que voy a mapear
+   */
+  updateData = data => {
+    this.setState({
+      datosInventario: data.map(el => {
+        var element = { ...el };
+        element.marca = {
+          value: el.idMarca,
+          label: this.getElementData(
+            this.state.datosMarca,
+            "idMarca",
+            el.idMarca,
+            "marca"
+          )
+        };
+
+        element.nombre = {
+          value: el.idNombre,
+          label: this.getElementData(
+            this.state.datosNombre,
+            "idNombre",
+            el.idNombre,
+            "nombre"
+          )
+        };
+
+        element.descripcion = {
+          value: el.idDescripcion,
+          label: this.getElementData(
+            this.state.datosDescripcion,
+            "idDescripcion",
+            el.idDescripcion,
+            "descripcion"
+          )
+        };
+
+        element.presentacion = {
+          value: el.idPresentacion,
+          label: this.getElementData(
+            this.state.datosPresentacion,
+            "idPresentacion",
+            el.idPresentacion,
+            "presentacion"
+          )
+        };
+        delete element.idDescripcion;
+        delete element.idNombre;
+        delete element.idMarca;
+        delete element.idPresentacion;
+
+        return element;
+      })
+    });
   };
 
   handleChange = (event, value) => {
+    this.bringAllData();
     this.setState({ value });
   };
 
@@ -168,32 +300,50 @@ class InventoryMngr extends Component {
           {value === "inv" && (
             <TabContainer>
               <InventoryTable
-                data={this.state.inventoryData}
-                brandData={this.state.brandData}
-                nameData={this.state.nameData}
-                descriptionData={this.state.descriptionData}
-                measurmentData={this.state.measurmentData}
+                data={this.state.datosInventario}
+                datosMarca={this.state.datosMarca}
+                datosNombre={this.state.datosNombre}
+                datosDescripcion={this.state.datosDescripcion}
+                datosPresentacion={this.state.datosPresentacion}
+                onInsert={this.addInventory}
+                onUpdate={this.editInventory}
               />
             </TabContainer>
           )}
           {value === "brand" && (
             <TabContainer>
-              <ProductBrandTable data={this.state.brandData} />
+              <ProductBrandTable
+                data={this.state.datosMarca}
+                onInsert={this.addHelper}
+                onUpdate={this.editHelper}
+              />
             </TabContainer>
           )}
           {value === "product" && (
             <TabContainer>
-              <ProductNamesTable data={this.state.nameData} />
+              <ProductNamesTable
+                data={this.state.datosNombre}
+                onInsert={this.addHelper}
+                onUpdate={this.editHelper}
+              />
             </TabContainer>
           )}
           {value === "description" && (
             <TabContainer>
-              <ProductDescriptionTable data={this.state.descriptionData} />
+              <ProductDescriptionTable
+                data={this.state.datosDescripcion}
+                onInsert={this.addHelper}
+                onUpdate={this.editHelper}
+              />
             </TabContainer>
           )}
           {value === "measurment" && (
             <TabContainer>
-              <ProductMeasurmentTable data={this.state.measurmentData} />
+              <ProductMeasurmentTable
+                data={this.state.datosPresentacion}
+                onInsert={this.addHelper}
+                onUpdate={this.editHelper}
+              />
             </TabContainer>
           )}
         </div>

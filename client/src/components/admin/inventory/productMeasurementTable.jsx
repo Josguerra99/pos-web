@@ -23,8 +23,25 @@ class ProductMeasurmentTable extends Component {
 
   constructor(props) {
     super(props);
-    this.state.data = props.data;
+    if (props.data != null && props.data.length > 0) {
+      this.state.data = props.data;
+    } else {
+      this.state.data = [];
+    }
+    // this.updateData(props);
   }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (prevProps.data !== this.props.data) {
+      var data = [];
+      if (this.props.data != null) {
+        data = this.props.data;
+      }
+      this.setState({ data });
+      this.setState({ hasData: true });
+    }
+  }
+
   /**
    * Events
    */
@@ -43,6 +60,27 @@ class ProductMeasurmentTable extends Component {
 
   syncMemoryData = data => {
     this.setState({ data });
+  };
+
+  onInsert = callback => {
+    if (this.props.onInsert != null) {
+      this.props.onInsert(
+        this.state.tempElement.presentacion,
+        "PRESENTACION",
+        callback
+      );
+    } else callback(0);
+  };
+
+  onUpdate = callback => {
+    if (this.props.onUpdate != null) {
+      this.props.onUpdate(
+        "PRESENTACION",
+        this.state.tempElement.idPresentacion,
+        this.state.tempElement.presentacion,
+        callback
+      );
+    } else callback(0);
   };
 
   /**
@@ -103,6 +141,8 @@ class ProductMeasurmentTable extends Component {
         tempElement={this.state.tempElement}
         columns={1}
         dialogName="presentación"
+        onInsert={this.onInsert}
+        onUpdate={this.onUpdate}
       />
     );
   }

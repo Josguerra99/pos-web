@@ -100,7 +100,7 @@ class AgregarResolucionAdmin extends Component {
       .then(data => {
         var err = data["@err"];
         //No hay errores entonces vamos a la pagina de resoluciones activas
-        if (err == 0) {
+        if (err === 0) {
           history.push(
             "/admin/resoluciones-activas?addSuccess=" + this.state.doc.value
           );

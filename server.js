@@ -63,6 +63,11 @@ app.get("/api/get_session", (req, res) => {
 
 ///---------------Autenticacion
 
+/****
+ *INVENTARIO
+ */
+require("./server/models/inventory-routes")(app);
+
 ///---------------Resoliciones
 
 const Resoluciones = require("./server/models/resoluciones-mngr");
