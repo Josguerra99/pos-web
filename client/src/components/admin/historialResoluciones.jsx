@@ -57,8 +57,7 @@ class HistorialResoluciones extends Component {
   state = {
     hasData: false,
     data: [],
-    printURL: null,
-    filters: []
+    printURL: null
   };
 
   constructor(props) {
@@ -98,16 +97,12 @@ class HistorialResoluciones extends Component {
   }
 
   /**
-   * Cambia el state filters y cuando haya terminado este va a traer datos a la db
-   * El backend aplique los filtros dependiendo del array que se le haya pasado
+   * Va a traer los datos de las resoluciones pero esta vez los va a traer con los filtros
+   * que le pasemos
    * @param {Array} filters Array de filtros que les sera pasado por el componente Filters
    */
   handleFilterUpdate = filters => {
-    return Promise.resolve(
-      this.setState({ filters }, () => {
-        this.bringResolucion();
-      })
-    );
+    return Promise.resolve(this.bringResolucion(filters));
   };
 
   /**
@@ -121,10 +116,10 @@ class HistorialResoluciones extends Component {
    * las filas, al final este array se guarda
    * como un state
    */
-  async bringResolucion() {
+  async bringResolucion(filters = []) {
     // this.setState({ hasData: false });
     // this.setState({ data: [] });
-    const request = { filters: this.state.filters };
+    const request = { filters: filters };
 
     return fetch("/api/getResoluciones", {
       method: "POST",

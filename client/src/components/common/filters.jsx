@@ -68,10 +68,7 @@ class Filters extends Component {
    * Abre o cierra el menu de filtros
    */
   toggleDrawer = open => () => {
-    this.setState({
-      drawer: { open }
-    });
-    if (!open) {
+    if (!open && this.state.drawer.open) {
       const { beforeFilters, afterFilters } = this.props;
       this.setState({ buttonDisable: true });
 
@@ -82,9 +79,9 @@ class Filters extends Component {
 
       if (afterFilters) {
         Promise.resolve(this.getFilters()).then(filters => {
-          afterFilters(filters).then(() =>
-            this.setState({ buttonDisable: false })
-          );
+          afterFilters(filters).then(() => {
+            this.setState({ buttonDisable: false });
+          });
         });
       }
 
@@ -93,6 +90,7 @@ class Filters extends Component {
         this.setState({ buttonDisable: false });
       }
     }
+    this.setState({ drawer: { open } });
   };
 
   render() {
