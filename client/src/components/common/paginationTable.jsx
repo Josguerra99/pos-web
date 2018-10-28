@@ -126,8 +126,7 @@ const styles = theme => ({
 class CustomPaginationActionsTable extends React.Component {
   state = {
     page: 0,
-    rowsPerPage: 5,
-    loading: false
+    rowsPerPage: 5
   };
 
   handleChangePage = (event, page) => {
@@ -139,12 +138,13 @@ class CustomPaginationActionsTable extends React.Component {
   };
 
   renderTableBody(rows, page, rowsPerPage, emptyRows) {
-    if (this.props.loading === false) {
+    const { loading, bodyMap, columns } = this.props;
+    if (!loading) {
       return (
         <TableBody>
           {rows
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map(row => this.props.bodyMap(row))}
+            .map(row => bodyMap(row))}
           {emptyRows > 0 && (
             <TableRow style={{ height: 48 * emptyRows }}>
               <TableCell colSpan={6} />
@@ -156,7 +156,7 @@ class CustomPaginationActionsTable extends React.Component {
       return (
         <TableBody>
           <TableRow>
-            <TableCell colSpan={this.props.columns}>
+            <TableCell colSpan={columns}>
               <Grid container justify="center">
                 <CircularProgress />
               </Grid>

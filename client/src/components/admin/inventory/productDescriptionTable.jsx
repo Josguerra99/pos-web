@@ -71,7 +71,8 @@ class ProductDescriptionTable extends Component {
       this.props.onInsert(
         this.state.tempElement.descripcion,
         "DESCRIPCION",
-        callback
+        callback,
+        "descHasChanges"
       );
     } else callback(0);
   };
@@ -82,7 +83,8 @@ class ProductDescriptionTable extends Component {
         "DESCRIPCION",
         this.state.tempElement.idDescripcion,
         this.state.tempElement.descripcion,
-        callback
+        callback,
+        "descHasChanges"
       );
     } else callback(0);
   };

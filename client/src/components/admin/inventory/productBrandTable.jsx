@@ -54,7 +54,12 @@ class ProductBrandTable extends Component {
 
   onInsert = callback => {
     if (this.props.onInsert != null) {
-      this.props.onInsert(this.state.tempElement.marca, "MARCA", callback);
+      this.props.onInsert(
+        this.state.tempElement.marca,
+        "MARCA",
+        callback,
+        "marcaHasChanges"
+      );
     } else callback(0);
   };
 
@@ -64,7 +69,8 @@ class ProductBrandTable extends Component {
         "MARCA",
         this.state.tempElement.idMarca,
         this.state.tempElement.marca,
-        callback
+        callback,
+        "marcaHasChanges"
       );
     } else callback(0);
   };

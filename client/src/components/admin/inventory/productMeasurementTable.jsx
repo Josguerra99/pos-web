@@ -67,7 +67,8 @@ class ProductMeasurmentTable extends Component {
       this.props.onInsert(
         this.state.tempElement.presentacion,
         "PRESENTACION",
-        callback
+        callback,
+        "presHasChanges"
       );
     } else callback(0);
   };
@@ -78,7 +79,8 @@ class ProductMeasurmentTable extends Component {
         "PRESENTACION",
         this.state.tempElement.idPresentacion,
         this.state.tempElement.presentacion,
-        callback
+        callback,
+        "presHasChanges"
       );
     } else callback(0);
   };

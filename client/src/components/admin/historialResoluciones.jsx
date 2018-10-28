@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import AdminDashboard from "./adminDashboard";
 import PropTypes from "prop-types";
 import { withStyles } from "@material-ui/core/styles";
-import Filters from "../common/filters";
 import PaginationTable from "../common/paginationTable";
 import TableRow from "@material-ui/core/TableRow";
 
@@ -14,7 +13,21 @@ import DownloadIcon from "@material-ui/icons/GetApp";
 import PrintIcon from "@material-ui/icons/Print";
 
 import ReportMngr from "../common/reporter/reportMngr";
+
+import Filters from "../common/filters";
+import FilterNumberRange from "../common/filterOptions/filterNumberRange";
+import FilterSearch from "../common/filterOptions/filterSearch";
+import FilterSelect from "../common/filterOptions/filterSelect";
+import { th } from "date-fns/esm/locale";
+import nextFrame from "next-frame";
+
 const reportmngr = new ReportMngr();
+
+const select = [
+  { id: "FAC", name: "Factura" },
+  { id: "NC", name: "Nota de crédito" },
+  { id: "ND", name: "Nota de débito" }
+];
 
 const styles = theme => ({
   list: {
@@ -44,8 +57,33 @@ class HistorialResoluciones extends Component {
   state = {
     hasData: false,
     data: [],
-    printURL: null
+    printURL: null,
+    filters: []
   };
+
+  constructor(props) {
+    super(props);
+    this.doc = React.createRef();
+    this.nres = React.createRef();
+    this.serie = React.createRef();
+    this.inicio = React.createRef();
+    this.fin = React.createRef();
+    this.fecha = React.createRef();
+
+    const refs = [];
+    refs.push(
+      this.doc,
+      this.nres,
+      this.serie,
+      this.inicio,
+      this.fin,
+      this.fecha
+    );
+    this.state.refs = refs;
+
+    this.beforeFilters = this.beforeFilters.bind(this);
+    this.bringResolucion = this.bringResolucion.bind(this);
+  }
 
   componentDidMount() {
     this.bringResolucion();
@@ -53,6 +91,24 @@ class HistorialResoluciones extends Component {
       this.setState({ printURL: fireURL });
     });
   }
+
+  async beforeFilters() {
+    this.setState({ hasData: false });
+    this.setState({ data: [] });
+  }
+
+  /**
+   * Cambia el state filters y cuando haya terminado este va a traer datos a la db
+   * El backend aplique los filtros dependiendo del array que se le haya pasado
+   * @param {Array} filters Array de filtros que les sera pasado por el componente Filters
+   */
+  handleFilterUpdate = filters => {
+    return Promise.resolve(
+      this.setState({ filters }, () => {
+        this.bringResolucion();
+      })
+    );
+  };
 
   /**
    * Traer la resolucion de la base de datos
@@ -65,9 +121,18 @@ class HistorialResoluciones extends Component {
    * las filas, al final este array se guarda
    * como un state
    */
-  bringResolucion() {
-    //Realizar peticion get
-    fetch("/api/getResoluciones")
+  async bringResolucion() {
+    // this.setState({ hasData: false });
+    // this.setState({ data: [] });
+    const request = { filters: this.state.filters };
+
+    return fetch("/api/getResoluciones", {
+      method: "POST",
+      body: JSON.stringify(request),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    })
       .then(res => res.json())
       .then(data => {
         if (data.length > 0) {
@@ -141,7 +206,49 @@ class HistorialResoluciones extends Component {
 
     return (
       <AdminDashboard>
-        <Filters />
+        <Filters
+          refs={this.state.refs}
+          afterFilters={this.handleFilterUpdate}
+          beforeFilters={this.beforeFilters}
+        >
+          <FilterSelect
+            id={"Documento"}
+            name={"Tipo de documento"}
+            label={"Documento"}
+            items={select}
+            innerRef={this.doc}
+          />
+          <FilterSearch
+            id={"Num"}
+            name={"Número de resolución"}
+            label={"Resolución"}
+            ref={this.nres}
+          />
+          <FilterSearch
+            id={"Serie"}
+            name={"Serie"}
+            label={"Serie"}
+            ref={this.serie}
+          />
+          <FilterNumberRange
+            id={"Inicio"}
+            name={"Inicio"}
+            label={"Valor"}
+            ref={this.inicio}
+          />
+          <FilterNumberRange
+            id={"Fin"}
+            name={"Fin"}
+            label={"Valor"}
+            ref={this.fin}
+          />
+          <FilterNumberRange
+            id={"Fecha"}
+            name={"Fecha"}
+            label={"Date"}
+            ref={this.fecha}
+          />
+        </Filters>
 
         {/* Icono de descargar e imprimir */}
         <Grid container>

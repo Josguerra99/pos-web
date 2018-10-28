@@ -13,7 +13,7 @@ class FilterNumberRange extends Component {
       { value: "!=", name: "No Igual" },
       { value: ">", name: "Mayor" },
       { value: "<", name: "Menor" },
-      { value: "<>", name: "Entre" }
+      { value: "><", name: "Entre" }
     ]
   };
 
@@ -29,9 +29,10 @@ class FilterNumberRange extends Component {
   getFilter() {
     let filter = {};
     filter.type = "numeric";
+    filter.id = this.props.id;
     filter.v1 = parseInt(this.state.val1);
     filter.v2 = parseInt(this.state.val2);
-    filter.state = this.state.type;
+    filter.state = this.state.filterType;
     filter.enable = this.filterItem.current.isEnable();
     filter.dir = this.filterItem.current.getDir();
     return filter;
@@ -56,7 +57,7 @@ class FilterNumberRange extends Component {
    */
   onTypeEvent = (v1, v2 = null) => {
     var changeValue = true;
-    if (this.state.filterType === "<>") {
+    if (this.state.filterType === "><") {
       if (v1 === "" && v2 === "") changeValue = false;
     } else {
       if (v1 === "") changeValue = false;
@@ -98,7 +99,7 @@ class FilterNumberRange extends Component {
    * caso contrario mira que val1 tenga valor
    */
   hasFilterData = () => {
-    if (this.state.filterType === "<>") {
+    if (this.state.filterType === "><") {
       return this.state.val1 != "" && this.state.val2 != "";
     } else {
       return this.state.val1 !== "" && this.state.val1 !== null;
@@ -106,7 +107,7 @@ class FilterNumberRange extends Component {
   };
 
   renderFilterInput(val) {
-    if (val === "<>") {
+    if (val === "><") {
       return (
         <IntRange
           isForm={false}

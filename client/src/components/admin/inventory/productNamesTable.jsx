@@ -45,7 +45,12 @@ class ProductNamesTable extends Component {
 
   onInsert = callback => {
     if (this.props.onInsert != null) {
-      this.props.onInsert(this.state.tempElement.nombre, "NOMBRE", callback);
+      this.props.onInsert(
+        this.state.tempElement.nombre,
+        "NOMBRE",
+        callback,
+        "nombHasChanges"
+      );
     } else callback(0);
   };
 
@@ -55,7 +60,8 @@ class ProductNamesTable extends Component {
         "NOMBRE",
         this.state.tempElement.idNombre,
         this.state.tempElement.nombre,
-        callback
+        callback,
+        "nombHasChanges"
       );
     } else callback(0);
   };

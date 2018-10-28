@@ -50,7 +50,7 @@ export default () => (
         render={props => <HomeSystem {...props} />}
       />
 
-      <Route path="/tests" exact render={props => <TableMngr {...props} />} />
+      <Route path="/tests" exact render={props => <Filter {...props} />} />
     </Switch>
   </Router>
 );

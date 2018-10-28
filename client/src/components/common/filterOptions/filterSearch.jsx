@@ -22,6 +22,21 @@ class FilterSearch extends Component {
   constructor(props) {
     super(props);
     this.filterItem = React.createRef();
+    this.getFilter = this.getFilter.bind(this);
+  }
+
+  /**
+   * Pasa los datos del filtro a un objeto
+   */
+  getFilter() {
+    let filter = {};
+    filter.type = "text";
+    filter.id = this.props.id;
+    filter.v1 = this.state.searchVal;
+    filter.state = this.state.filterType;
+    filter.enable = this.filterItem.current.isEnable();
+    filter.dir = this.filterItem.current.getDir();
+    return filter;
   }
 
   /**

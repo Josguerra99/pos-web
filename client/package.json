@@ -11,6 +11,7 @@
     "file-saver": "^2.0.0-rc.4",
     "history": "^4.7.2",
     "material-ui-pickers": "^1.0.0",
+    "next-frame": "^0.2.3",
     "query-string": "^6.2.0",
     "react": "^16.5.2",
     "react-dom": "^16.5.2",

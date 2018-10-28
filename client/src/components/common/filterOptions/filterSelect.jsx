@@ -46,6 +46,21 @@ class FilterSelectMultiple extends Component {
   constructor(props) {
     super(props);
     this.filterItem = React.createRef();
+    this.getFilter = this.getFilter.bind(this);
+  }
+
+  /**
+   * Pasa los datos del filtro a un objeto
+   */
+  getFilter() {
+    let filter = {};
+    filter.id = this.props.id;
+    filter.type = "select";
+    filter.v1 = this.state.item;
+    filter.state = null;
+    filter.enable = this.filterItem.current.isEnable();
+    filter.dir = this.filterItem.current.getDir();
+    return filter;
   }
 
   handleChange = event => {

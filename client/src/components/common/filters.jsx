@@ -13,6 +13,7 @@ import FilterSelect from "./filterOptions/filterSelect";
 import Typography from "@material-ui/core/Typography";
 import Modal from "@material-ui/core/Modal";
 import Collapse from "@material-ui/core/Collapse";
+import nextFrame from "next-frame";
 
 const styles = theme => ({
   list: {
@@ -32,17 +33,15 @@ const styles = theme => ({
   },
   backdrop: {
     zIndex: 1100
-  }
+  },
+  buttonDisable: false
 });
 
-const select = [
-  { id: "FAC", name: "Factura" },
-  { id: "NC", name: "Nota de crédito" },
-  { id: "ND", name: "Nota de débito" }
-];
-
 class Filters extends Component {
-  state = { drawer: { open: false, top: true }, filters: [] };
+  state = {
+    drawer: { open: false, top: true },
+    filters: []
+  };
 
   /**
    * Guarda los filtros activos en objetos, estos se mandan al backend
@@ -51,21 +50,48 @@ class Filters extends Component {
 
   constructor(props) {
     super(props);
-    this.inicio = React.createRef();
   }
 
-  getFilters() {
-    JSON.stringify(this.inicio.current.getFilter());
+  async getFilters() {
+    var filters = [];
+    const { refs } = this.props;
+    if (this.props.refs) {
+      for (let el of refs) {
+        await nextFrame();
+        var filter = el.current.getFilter();
+        if (filter.enable) filters.push(filter);
+      }
+    }
+    return filters;
   }
   /**
    * Abre o cierra el menu de filtros
    */
   toggleDrawer = open => () => {
     this.setState({
-      drawer: { open: open }
+      drawer: { open }
     });
     if (!open) {
-      this.getFilters();
+      const { beforeFilters, afterFilters } = this.props;
+      this.setState({ buttonDisable: true });
+
+      if (beforeFilters) {
+        beforeFilters();
+        if (!afterFilters) this.setState({ buttonDisable: false });
+      }
+
+      if (afterFilters) {
+        Promise.resolve(this.getFilters()).then(filters => {
+          afterFilters(filters).then(() =>
+            this.setState({ buttonDisable: false })
+          );
+        });
+      }
+
+      //Si no hare nada solo vuelvo a activar el boton
+      if (!beforeFilters && !afterFilters) {
+        this.setState({ buttonDisable: false });
+      }
     }
   };
 
@@ -74,7 +100,10 @@ class Filters extends Component {
 
     return (
       <React.Fragment>
-        <Button onClick={this.toggleDrawer(true)}>
+        <Button
+          onClick={this.toggleDrawer(true)}
+          disabled={this.state.buttonDisable}
+        >
           Filtros
           <KeyboardArrowDownIcon
             className={classNames(classes.iconSmall, classes.rightIcon)}
@@ -101,21 +130,7 @@ class Filters extends Component {
             />
           </Button>
           <Divider />
-
-          <FilterSelect
-            name={"Tipo de documento"}
-            label={"Documento"}
-            items={select}
-          />
-          <FilterSearch name={"Número de resolución"} label={"Resolución"} />
-          <FilterSearch name={"Serie"} label={"Serie"} />
-          <FilterNumberRange
-            name={"Inicio"}
-            label={"Valor"}
-            ref={this.inicio}
-          />
-          <FilterNumberRange name={"Fin"} label={"Valor"} />
-          <FilterNumberRange name={"Fecha"} label={"Date"} />
+          {this.props.children}
         </Drawer>
       </React.Fragment>
     );

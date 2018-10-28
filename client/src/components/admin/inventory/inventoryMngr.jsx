@@ -41,7 +41,12 @@ class InventoryMngr extends Component {
     datosPresentacion: [],
     datosMarca: [],
     datosDescripcion: [],
-    datosNombre: []
+    datosNombre: [],
+    invHasChanges: false,
+    presHasChanges: false,
+    marcaHasChanges: false,
+    descHasChanges: false,
+    nombHasChanges: false
   };
 
   componentDidMount() {
@@ -58,8 +63,45 @@ class InventoryMngr extends Component {
     this.setState({ datosPresentacion: [] });
     this.setState({ datosMarca: [] });
     await this.bringHelpersParallel().then(() => {
-      Promise.resolve(this.bringInventory());
+      Promise.resolve(this.bringInventory()).then(() => {
+        this.setState({ invHasChanges: false });
+        this.setState({ nombHasChanges: false });
+        this.setState({ marcaHasChanges: false });
+        this.setState({ descHasChanges: false });
+        this.setState({ presHasChanges: false });
+      });
     });
+  }
+
+  /**
+   * Solo obtener los datos requeridos
+   * @param {String} value id de la pestaña en la que estamos
+   */
+
+  async bringRequiredData(value) {
+    if (value === "inv" && this.state.invHasChanges) {
+      Promise.resolve(this.bringAllData()).then(() => {});
+    } else if (value === "brand" && this.state.marcaHasChanges) {
+      this.setState({ datosMarca: [] });
+      Promise.resolve(this.bringHelpers("datosMarca", "MARCA")).then(() =>
+        this.setState({ marcaHasChanges: false })
+      );
+    } else if (value === "product" && this.state.nombHasChanges) {
+      this.setState({ datosNombre: [] });
+      Promise.resolve(this.bringHelpers("datosNombre", "NOMBRE")).then(() =>
+        this.setState({ nombHasChanges: false })
+      );
+    } else if (value === "description" && this.state.descHasChanges) {
+      this.setState({ datosDescripcion: [] });
+      Promise.resolve(
+        this.bringHelpers("datosDescripcion", "DESCRIPCION")
+      ).then(() => this.setState({ descHasChanges: false }));
+    } else if (value === "measurment" && this.state.presHasChanges) {
+      this.setState({ datosPresentacion: [] });
+      Promise.resolve(
+        this.bringHelpers("datosPresentacion", "PRESENTACION")
+      ).then(() => this.setState({ presHasChanges: false }));
+    }
   }
 
   /**
@@ -116,7 +158,7 @@ class InventoryMngr extends Component {
    * @param {*} name nombre del dato que se va a insertar
    * @param {*} type tipo de helper a traer (MARCA/DESCRIPCION/NOMBRE/PRESENTACION)
    */
-  addHelper = (name, type, callback) => {
+  addHelper = (name, type, callback, changes) => {
     const requestData = {
       type: type,
       name: name
@@ -131,6 +173,8 @@ class InventoryMngr extends Component {
       .then(res => res.json())
       .then(data => {
         var err = data["@err"];
+        if (err === 0) this.setState({ invHasChanges: true });
+        if (err === 0) this.setState({ [changes]: true });
         callback(parseInt(err));
       });
   };
@@ -155,11 +199,12 @@ class InventoryMngr extends Component {
       .then(res => res.json())
       .then(data => {
         var err = data["@err"];
+        if (err === 0) this.setState({ invHasChanges: true });
         callback(parseInt(err));
       });
   };
 
-  editHelper = (type, id, name, callback) => {
+  editHelper = (type, id, name, callback, changes) => {
     const requestData = {
       type: type,
       id: id,
@@ -175,6 +220,8 @@ class InventoryMngr extends Component {
       .then(res => res.json())
       .then(data => {
         var err = data["@err"];
+        if (err === 0) this.setState({ invHasChanges: true });
+        if (err === 0) this.setState({ [changes]: true });
         callback(parseInt(err));
       });
   };
@@ -199,6 +246,7 @@ class InventoryMngr extends Component {
       .then(res => res.json())
       .then(data => {
         var err = data["@err"];
+        if (err === 0) this.setState({ invHasChanges: true });
         callback(parseInt(err));
       });
   };
@@ -278,7 +326,7 @@ class InventoryMngr extends Component {
   };
 
   handleChange = (event, value) => {
-    this.bringAllData();
+    this.bringRequiredData(value);
     this.setState({ value });
   };
 
