@@ -147,24 +147,28 @@ app.get("/api/getReplaceResolucion", (req, res) => {
   );
 });
 
-app.get("/api/getResoluciones", (req, res) => {
+app.post("/api/getResoluciones", (req, res) => {
   //Comporbar sesion
   if (!req.session.role || req.session.role !== "ADMIN") {
     var resjson = [{ "@err": -1, message: "No autorizado" }];
     res.status(401).send(resjson);
     return;
   }
-  Resoluciones.getResoluciones(req.session.nit_negocio, (err, data) => {
-    if (err) {
-      res
-        .status(500)
-        .send([
-          { "@err": 1, message: "Error al traer datos de la resolucion" }
-        ]);
-    } else {
-      res.status(200).send(data);
+  Resoluciones.getResoluciones(
+    req.session.nit_negocio,
+    req.body.filters,
+    (err, data) => {
+      if (err) {
+        res
+          .status(500)
+          .send([
+            { "@err": 1, message: "Error al traer datos de la resolucion" }
+          ]);
+      } else {
+        res.status(200).send(data);
+      }
     }
-  });
+  );
 });
 
 const HistorialResoluciones = require("./server/reports/historialResoluciones");
@@ -175,7 +179,7 @@ app.get("/api/reports/historialResoluciones", (req, res) => {
     return;
   }
 
-  Resoluciones.getResoluciones(req.session.nit_negocio, (err, data) => {
+  Resoluciones.getResoluciones(req.session.nit_negocio, null, (err, data) => {
     if (err) {
       res
         .status(500)

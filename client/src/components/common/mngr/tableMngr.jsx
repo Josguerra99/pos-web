@@ -212,7 +212,7 @@ class TableMngr extends Component {
         <TableCell align={"center"}>
           <IconButton
             color="primary"
-            aria-label="Add an alarm"
+            aria-label="Edit element"
             onClick={() => {
               this.handleDialogOpen(true, "EDIT", row.id);
             }}

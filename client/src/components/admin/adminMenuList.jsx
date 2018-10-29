@@ -11,6 +11,23 @@ import HomeIcon from "@material-ui/icons/Home";
 import BookIcon from "@material-ui/icons/Book";
 import history from "../common/history";
 
+import PropTypes from "prop-types";
+import { withStyles } from "@material-ui/core/styles";
+import Collapse from "@material-ui/core/Collapse";
+import ExpandLess from "@material-ui/icons/ExpandLess";
+import ExpandMore from "@material-ui/icons/ExpandMore";
+
+const styles = theme => ({
+  root: {
+    width: "100%",
+    maxWidth: 360,
+    backgroundColor: theme.palette.background.paper
+  },
+  nested: {
+    paddingLeft: theme.spacing.unit * 4
+  }
+});
+
 export const mainListItems = (
   <div>
     <ListItem button onClick={() => history.push("/admin/home")}>
@@ -19,7 +36,7 @@ export const mainListItems = (
       </ListItemIcon>
       <ListItemText primary="Inicio" />
     </ListItem>
-    <ListItem button>
+    <ListItem button onClick={() => history.push("/admin/inventario")}>
       <ListItemIcon>
         <ShoppingCartIcon />
       </ListItemIcon>

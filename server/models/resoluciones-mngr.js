@@ -1,4 +1,5 @@
 const con = require("../database/db-con");
+const FilterMngr = require("./filters-mngr");
 
 let resolucionMngr = {};
 
@@ -60,10 +61,12 @@ resolucionMngr.getActiva = (doc, nit_negocio, callback) => {
   }
 };
 
-resolucionMngr.getResoluciones = (nit_negocio, callback) => {
+resolucionMngr.getResoluciones = (nit_negocio, filters, callback) => {
   if (con) {
+    const whereQuery = FilterMngr.createFilter(filters);
     con.query(
-      "SELECT Num, Serie,Inicio,Fin,Actual,Fecha,Documento FROM Resolucion WHERE  nit_negocio=? ",
+      "SELECT Num, Serie,Inicio,Fin,Actual,Fecha,Documento FROM Resolucion WHERE  nit_negocio=? AND " +
+        whereQuery,
       [nit_negocio],
       (err, rows) => {
         if (err) {

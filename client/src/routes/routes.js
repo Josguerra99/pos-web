@@ -13,7 +13,8 @@ import ResolucionesActivas from "../components/admin/resolucionesActivas";
 import history from "../components/common/history";
 import Filter from "../components/common/filters";
 
-import TableMngr from "../components/admin/inventory/inventoryMngr";
+import InventoryMngr from "../components/admin/inventory/inventoryMngr";
+import DynamicInsertTable from "../components/common/dynamicInsertTable/dynamicInsertTable";
 
 export default () => (
   <Router history={history}>
@@ -45,12 +46,21 @@ export default () => (
         render={props => <ResolucionesActivas {...props} />}
       />
       <Route
+        path="/admin/inventario"
+        exact
+        render={props => <InventoryMngr {...props} />}
+      />
+      <Route
         path="/system/home"
         exact
         render={props => <HomeSystem {...props} />}
       />
 
-      <Route path="/tests" exact render={props => <Filter {...props} />} />
+      <Route
+        path="/tests"
+        exact
+        render={props => <DynamicInsertTable {...props} />}
+      />
     </Switch>
   </Router>
 );
