@@ -14,6 +14,7 @@ import history from "../components/common/history";
 import Filter from "../components/common/filters";
 
 import InventoryMngr from "../components/admin/inventory/inventoryMngr";
+import Facturacion from "../components/admin/facturacion/facturacion";
 import DynamicInsertTable from "../components/common/dynamicInsertTable/dynamicInsertTable";
 
 export default () => (
@@ -59,7 +60,7 @@ export default () => (
       <Route
         path="/tests"
         exact
-        render={props => <DynamicInsertTable {...props} />}
+        render={props => <Facturacion {...props} />}
       />
     </Switch>
   </Router>

@@ -12,6 +12,8 @@ import Grid from "@material-ui/core/Grid";
 import IconButton from "@material-ui/core/IconButton";
 import AddIcon from "@material-ui/icons/Add";
 import DeleteIcon from "@material-ui/icons/Delete";
+import CancelIcon from "@material-ui/icons/Close";
+import DoneIcon from "@material-ui/icons/Done";
 import EditIcon from "@material-ui/icons/Edit";
 
 const styles = theme => ({
@@ -34,25 +36,17 @@ function createData(name, calories, fat, carbs, protein) {
   return { id, name, calories, fat, carbs, protein };
 }
 
-const rows = [
-  { id: 0, codigo: "A", nombre: "ABC" },
-  { id: 1, codigo: "B", nombre: "123" }
-];
-
 class DynamicInsertTable extends Component {
   state = {
-    tempData: { id: 0, codigo: "", nombre: "" },
-    elementStructure: { id: 0, codigo: "", nombre: "" },
-    data: rows
+    editing: false
   };
 
   constructor(props) {
     super(props);
-    this.firstInput = React.createRef();
   }
 
   deleteRow = arrayID => {
-    let originalData = [...this.state.data];
+    let originalData = [...this.props.data];
     originalData.splice(arrayID, 1);
 
     const data = originalData.map((el, id) => {
@@ -61,70 +55,106 @@ class DynamicInsertTable extends Component {
       return element;
     });
 
-    this.setState({ data });
+    this.props.syncData(data);
   };
 
   editRow = arrayID => {
-    const { data } = this.state;
-    let tempData = {
-      id: arrayID,
-      codigo: data[arrayID].codigo,
-      nombre: data[arrayID].nombre
-    };
-    this.setState({ tempData });
+    const { data } = this.props;
+    let tempData = data[arrayID];
 
-    this.firstInput.current.focus();
+    this.setState({ editing: true });
+
+    this.props.syncTempData(tempData);
+    //this.setState({ tempData });
+
+    this.props.firstInput.current.focus();
+  };
+  doneEditing = () => {
+    const { tempData } = this.props;
+    const data = [...this.props.data];
+    data[tempData.id] = tempData;
+
+    this.props.syncData(data);
+    this.cancelEditing();
+  };
+
+  cancelEditing = () => {
+    this.props.syncTempData(this.props.elementStructure);
+    this.setState({ editing: false }, () => {
+      this.props.firstInput.current.focus();
+    });
   };
 
   insertRow = () => {
-    let data = [...this.state.data];
-    let tempData = { ...this.state.tempData };
+    let data = [...this.props.data];
+    let tempData = { ...this.props.tempData };
     tempData.id = data.length;
     data.push(tempData);
-    this.setState({ data }, () => {
-      this.firstInput.current.focus();
-    });
-    this.setState({ tempData: this.state.elementStructure });
+    this.props.syncData(data);
+    this.props.firstInput.current.focus();
+    this.props.syncTempData(this.props.elementStructure);
+    //this.setState({ tempData: this.state.elementStructure });
   };
 
-  handleCodigo = e => {
-    let tempData = { ...this.state.tempData };
-    tempData.codigo = e.target.value;
-    this.setState({ tempData });
-  };
-
-  handleNombre = e => {
-    let tempData = { ...this.state.tempData };
-    tempData.nombre = e.target.value;
-    this.setState({ tempData });
-  };
+  /**
+   * Rendriza boton agregar o aceptar cancelar
+   */
+  renderInsertButtons() {
+    if (!this.state.editing) {
+      return (
+        <IconButton
+          color="primary"
+          aria-label="Agregar"
+          onClick={this.insertRow}
+        >
+          <AddIcon />
+        </IconButton>
+      );
+    } else {
+      return (
+        <React.Fragment>
+          <IconButton
+            color="primary"
+            aria-label="Aceptar"
+            onClick={this.doneEditing}
+          >
+            <DoneIcon />
+          </IconButton>
+          <IconButton
+            color="primary"
+            aria-label="Cancelar"
+            onClick={this.cancelEditing}
+          >
+            <CancelIcon />
+          </IconButton>
+        </React.Fragment>
+      );
+    }
+  }
 
   render() {
-    const { classes } = this.props;
-    const { tempData } = this.state;
+    const { classes, data } = this.props;
+
     return (
       <Paper className={classes.root}>
         <Table className={classes.table}>
           <TableHead>
             <TableRow>
-              <TableCell>Codigo</TableCell>
-              <TableCell>Nombre</TableCell>
+              {this.props.tableHeader()}
               <TableCell>Opciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {this.state.data.map(row => {
+            {data.map(row => {
               return (
                 <TableRow key={row.id}>
-                  <TableCell component="th" scope="row">
-                    {row.codigo}
-                  </TableCell>
-                  <TableCell>{row.nombre}</TableCell>
+                  {this.props.tableBody(row)}
                   <TableCell align={"center"}>
                     <IconButton
                       color="primary"
                       aria-label="Editar"
                       onClick={() => this.editRow(row.id)}
+                      disabled={this.state.editing}
                     >
                       <EditIcon />
                     </IconButton>
@@ -132,6 +162,7 @@ class DynamicInsertTable extends Component {
                       color="secondary"
                       aria-label="Eliminar"
                       onClick={() => this.deleteRow(row.id)}
+                      disabled={this.state.editing}
                     >
                       <DeleteIcon />
                     </IconButton>
@@ -139,38 +170,10 @@ class DynamicInsertTable extends Component {
                 </TableRow>
               );
             })}
-            <TableRow key={rows.length}>
-              <TableCell className={classes.insertCell}>
-                <TextField
-                  id="standard-name"
-                  label="Name"
-                  inputRef={this.firstInput}
-                  className={classes.textField}
-                  value={tempData.codigo}
-                  autoFocus
-                  onChange={this.handleCodigo}
-                  //margin="normal"
-                />
-              </TableCell>
-              <TableCell className={classes.insertCell}>
-                <TextField
-                  id="standard-name"
-                  label="Name"
-                  className={classes.textField}
-                  value={tempData.nombre}
-                  onChange={this.handleNombre}
-                  //onChange={this.handleChange("name")}
-                  //margin="normal"
-                />
-              </TableCell>
+            <TableRow key={data.length}>
+              {this.props.insertRow(classes)}
               <TableCell align={"center"} className={classes.insertCell}>
-                <IconButton
-                  color="primary"
-                  aria-label="Agregar"
-                  onClick={this.insertRow}
-                >
-                  <AddIcon />
-                </IconButton>
+                {this.renderInsertButtons()}
               </TableCell>
             </TableRow>
           </TableBody>

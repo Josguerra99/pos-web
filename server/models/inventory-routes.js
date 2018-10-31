@@ -142,4 +142,27 @@ module.exports = function(app) {
       }
     );
   });
+
+
+    app.get("/api/getInventoryFact", (req, res) => {
+    //Comporbar sesion
+    if (!req.session.role || req.session.role !== "ADMIN"&&req.session.role!=="PUBLIC") {
+      var resjson = [{ "@err": -1, message: "No autorizado" }];
+      res.status(401).send(resjson);
+      return;
+    }
+    Inventario.getInventoryFact(req.session.nit_negocio, (err, data) => {
+      if (err) {
+        res
+          .status(500)
+          .send([
+            { "@err": 1, message: "Error al traer datos del inventario" }
+          ]);
+      } else {
+        res.status(200).send(data);
+      }
+    });
+  });
+
+
 };

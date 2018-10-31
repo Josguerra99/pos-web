@@ -2,6 +2,29 @@ const con = require("../database/db-con");
 
 let inventoryMngr = {};
 
+
+
+inventoryMngr.getInventoryFact=(nit_negocio,callback)=>{
+  if (con) {
+    con.query(
+      "SELECT codigo,concat_ws('',marca.marca,' ',nombre.nombre,' ',descripcion.descripcion,' ',presentacion.presentacion,' ',inv.unidades,' unidad(es)') AS producto, inv.precioActual FROM Inventario AS inv "+ 
+      " INNER JOIN ProductoMarca As marca ON inv.idMarca=marca.idMarca"+
+      " INNER JOIN ProductoNombre As nombre ON inv.idNombre=nombre.idNombre"+
+      " INNER JOIN ProductoPresentacion As presentacion ON inv.idPresentacion=presentacion.idPresentacion"+
+      " INNER JOIN ProductoDescripcion As descripcion ON inv.idDescripcion=descripcion.idDescripcion WHERE inv.nit_negocio=?;",
+      [nit_negocio],
+      (err, rows) => {
+        if (err) {
+          console.log("Error al intentar extraer el inventario "+ err);
+        } else {
+          callback(null, rows);
+        }
+      }
+    );
+  }
+}
+
+
 inventoryMngr.getInventory = (nit_negocio, callback) => {
   if (con) {
     con.query(
