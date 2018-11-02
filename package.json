@@ -21,6 +21,7 @@
     "fluentreports": "^1.2.2",
     "mysql": "^2.16.0",
     "pdfmake": "^0.1.38",
+    "react-scripts": "^2.1.1",
     "roboto-fontface": "^0.10.0"
   },
   "devDependencies": {
