@@ -20,7 +20,6 @@ import MoneyIcon from "@material-ui/icons/AttachMoneyRounded";
 import ProductsIcon from "@material-ui/icons/ShoppingCartRounded";
 import Button from "@material-ui/core/Button";
 import NavigationIcon from "@material-ui/icons/Save";
-import ScrollToBottom from "react-scroll-to-bottom";
 
 const styles = theme => ({
   card: {
@@ -285,126 +284,124 @@ class Facturacion extends Component {
   render() {
     const { classes, theme } = this.props;
     return (
-      <ScrollToBottom mode="bottom">
-        <AdminDashboard>
-          <Grid container>
-            <Grid item xs={4}>
-              <Card>
-                <CardContent>
-                  <Form>
-                    <TextField
-                      autoFocus
-                      id="nit"
-                      label="NIT"
-                      onChange={e => {
-                        this.handleClienteChange(e, "nit");
-                      }}
-                      value={this.state.nit}
-                      style={{ margin: "10px" }}
-                    />
-                    <TextField
-                      id="cliente"
-                      label="Nombre"
-                      style={{ margin: "10px" }}
-                    />
-                    <TextField
-                      id="direccion"
-                      label="Dirección"
-                      style={{ margin: "10px" }}
-                    />
-                  </Form>
-                </CardContent>
-              </Card>
-            </Grid>
+      <AdminDashboard>
+        <Grid container>
+          <Grid item xs={4}>
+            <Card>
+              <CardContent>
+                <Form>
+                  <TextField
+                    autoFocus
+                    id="nit"
+                    label="NIT"
+                    onChange={e => {
+                      this.handleClienteChange(e, "nit");
+                    }}
+                    value={this.state.nit}
+                    style={{ margin: "10px" }}
+                  />
+                  <TextField
+                    id="cliente"
+                    label="Nombre"
+                    style={{ margin: "10px" }}
+                  />
+                  <TextField
+                    id="direccion"
+                    label="Dirección"
+                    style={{ margin: "10px" }}
+                  />
+                </Form>
+              </CardContent>
+            </Card>
           </Grid>
+        </Grid>
 
-          <DynamicTable
-            tableHeader={this.renderTableHeader}
-            tableBody={this.renderTableBody}
-            insertRow={this.renderInsertRow}
-            tempData={this.state.tempData}
-            elementStructure={this.state.elementStructure}
-            firstInput={this.firstInput}
-            data={this.state.data}
-            syncData={this.syncData}
-            syncTempData={this.syncTempData}
-          />
+        <DynamicTable
+          tableHeader={this.renderTableHeader}
+          tableBody={this.renderTableBody}
+          insertRow={this.renderInsertRow}
+          tempData={this.state.tempData}
+          elementStructure={this.state.elementStructure}
+          firstInput={this.firstInput}
+          data={this.state.data}
+          syncData={this.syncData}
+          syncTempData={this.syncTempData}
+        />
 
-          <Grid container style={{ paddingTop: "20px" }}>
-            <Grid item xs={12}>
-              <Card className={classes.card}>
-                <CardContent className={classes.content}>
-                  <Grid container>
-                    <Grid item xs={4}>
-                      <Grid container>
-                        <Grid item xs={3}>
-                          <Avatar className={classes.moneyAvatar}>
-                            <MoneyIcon className={classes.moneyIcon} />
-                          </Avatar>
-                        </Grid>
-
-                        <Grid item xs={6} className={classes.text}>
-                          <Typography
-                            color="textSecondary"
-                            component="h6"
-                            variant="h6"
-                            gutterBottom
-                          >
-                            Total
-                          </Typography>
-                          <Typography component="h5" variant="h5" gutterBottom>
-                            {"Q." + this.state.total.toFixed(2)}
-                          </Typography>
-                        </Grid>
+        <Grid container style={{ paddingTop: "20px" }}>
+          <Grid item xs={12}>
+            <Card className={classes.card}>
+              <CardContent className={classes.content}>
+                <Grid container>
+                  <Grid item xs={4}>
+                    <Grid container>
+                      <Grid item xs={3}>
+                        <Avatar className={classes.moneyAvatar}>
+                          <MoneyIcon className={classes.moneyIcon} />
+                        </Avatar>
                       </Grid>
-                    </Grid>
 
-                    <Grid item xs={4}>
-                      <Grid container>
-                        <Grid item xs={3}>
-                          <Avatar className={classes.productsAvatar}>
-                            <ProductsIcon className={classes.productIcon} />
-                          </Avatar>
-                        </Grid>
-
-                        <Grid item xs={6} className={classes.text}>
-                          <Typography
-                            color="textSecondary"
-                            component="h6"
-                            variant="h6"
-                            gutterBottom
-                          >
-                            Articulos
-                          </Typography>
-                          <Typography component="h5" variant="h5" gutterBottom>
-                            {this.state.cantidad}
-                          </Typography>
-                        </Grid>
-                      </Grid>
-                    </Grid>
-
-                    <Grid item xs={4} className={classes.button}>
-                      <Grid container>
-                        <Grid item xs={3} />
-                        <Grid item xs={3}>
-                          <Button
-                            variant="extendedFab"
-                            aria-label="Delete"
-                            className={classes.button1}
-                          >
-                            <NavigationIcon className={classes.extendedIcon} />
-                            Terminar
-                          </Button>
-                        </Grid>
+                      <Grid item xs={6} className={classes.text}>
+                        <Typography
+                          color="textSecondary"
+                          component="h6"
+                          variant="h6"
+                          gutterBottom
+                        >
+                          Total
+                        </Typography>
+                        <Typography component="h5" variant="h5" gutterBottom>
+                          {"Q." + this.state.total.toFixed(2)}
+                        </Typography>
                       </Grid>
                     </Grid>
                   </Grid>
-                </CardContent>
-              </Card>
-            </Grid>
+
+                  <Grid item xs={4}>
+                    <Grid container>
+                      <Grid item xs={3}>
+                        <Avatar className={classes.productsAvatar}>
+                          <ProductsIcon className={classes.productIcon} />
+                        </Avatar>
+                      </Grid>
+
+                      <Grid item xs={6} className={classes.text}>
+                        <Typography
+                          color="textSecondary"
+                          component="h6"
+                          variant="h6"
+                          gutterBottom
+                        >
+                          Articulos
+                        </Typography>
+                        <Typography component="h5" variant="h5" gutterBottom>
+                          {this.state.cantidad}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </Grid>
+
+                  <Grid item xs={4} className={classes.button}>
+                    <Grid container>
+                      <Grid item xs={3} />
+                      <Grid item xs={3}>
+                        <Button
+                          variant="extendedFab"
+                          aria-label="Delete"
+                          className={classes.button1}
+                        >
+                          <NavigationIcon className={classes.extendedIcon} />
+                          Terminar
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
           </Grid>
-        </AdminDashboard>
-      </ScrollToBottom>
+        </Grid>
+      </AdminDashboard>
     );
   }
 }
