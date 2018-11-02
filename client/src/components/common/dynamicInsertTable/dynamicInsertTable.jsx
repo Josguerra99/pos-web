@@ -93,7 +93,6 @@ class DynamicInsertTable extends Component {
     this.props.syncData(data);
     this.props.firstInput.current.focus();
     this.props.syncTempData(this.props.elementStructure);
-    //this.setState({ tempData: this.state.elementStructure });
   };
 
   /**

@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import PropTypes from "prop-types";
+import { withStyles } from "@material-ui/core/styles";
 import DynamicTable from "../../common/dynamicInsertTable/dynamicInsertTable";
 import AdminDashboard from "../adminDashboard";
 import TableCell from "@material-ui/core/TableCell";
@@ -12,6 +14,73 @@ import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 import Form from "@material-ui/core/FormGroup";
 import { th } from "date-fns/esm/locale";
+
+import Avatar from "@material-ui/core/Avatar";
+import MoneyIcon from "@material-ui/icons/AttachMoneyRounded";
+import ProductsIcon from "@material-ui/icons/ShoppingCartRounded";
+import Button from "@material-ui/core/Button";
+import NavigationIcon from "@material-ui/icons/Save";
+import ScrollToBottom from "react-scroll-to-bottom";
+
+const styles = theme => ({
+  card: {
+    // display: "flex"
+    justify: "center",
+    marginTop: 40,
+    marginLeft: 200,
+    marginRight: 200,
+    height: 120
+  },
+  details: {
+    display: "flex",
+    flexDirection: "column"
+  },
+  content: {
+    //flex: "1 0 auto"
+    padding: 20,
+    marginBottom: 10
+  },
+  cover: {
+    width: 151
+  },
+  controls: {
+    display: "flex",
+    alignItems: "center",
+    paddingLeft: theme.spacing.unit,
+    paddingBottom: theme.spacing.unit
+  },
+  moneyIcon: {
+    fontSize: 40
+  },
+  productIcon: {
+    fontSize: 35
+  },
+  moneyAvatar: {
+    margin: 10,
+    padding: 30,
+    color: "#fff",
+    backgroundColor: "#FF8F00"
+  },
+
+  productsAvatar: {
+    margin: 10,
+    padding: 30,
+    color: "#fff",
+    backgroundColor: "#00695f"
+  },
+  icon: {
+    fontSize: 50
+  },
+  text: {
+    //backgroundColor: "#FF8F00",
+    paddingLeft: 10,
+    paddingBottom: 30
+  },
+  button: {
+    justify: "center",
+    paddingTop: 15
+  }
+});
 
 class Facturacion extends Component {
   state = {
@@ -34,18 +103,25 @@ class Facturacion extends Component {
       precio: 0
     },
     data: [],
-    nit: undefined
+    nit: undefined,
+    cantidad: 0,
+    total: 0
   };
 
   constructor(props) {
     super(props);
     this.firstInput = React.createRef();
+
+    this.scrollToBottom = this.scrollToBottom.bind(this);
   }
 
   componentDidMount() {
     this.bringProductos();
   }
 
+  componentWillUnmount() {}
+
+  scrollToBottom() {}
   /**
    * Traer los productos para hacer el ingreso mas rapido
    */
@@ -75,12 +151,16 @@ class Facturacion extends Component {
     return producto;
   }
 
-  getTotal() {
+  updateTotals() {
     var total = 0;
+    var cantidad = 0;
     this.state.data.forEach(el => {
       total += el.precio;
+      var tempCantidad = parseInt(el.cantidad);
+      if (tempCantidad != null && tempCantidad > 0) cantidad += tempCantidad;
     });
-    return total;
+    this.setState({ cantidad });
+    this.setState({ total });
   }
   /**
    * Eventos
@@ -121,7 +201,10 @@ class Facturacion extends Component {
   };
 
   syncData = data => {
-    this.setState({ data });
+    this.setState({ data }, () => {
+      this.updateTotals();
+      this.scrollToBottom();
+    });
   };
 
   syncTempData = tempData => {
@@ -200,66 +283,135 @@ class Facturacion extends Component {
   };
 
   render() {
+    const { classes, theme } = this.props;
     return (
-      <AdminDashboard>
-        <Grid container>
-          <Grid item xs={4}>
-            <Card>
-              <CardContent>
-                <Form>
-                  <TextField
-                    autoFocus
-                    id="nit"
-                    label="NIT"
-                    onChange={e => {
-                      this.handleClienteChange(e, "nit");
-                    }}
-                    value={this.state.nit}
-                    style={{ margin: "10px" }}
-                  />
-                  <TextField
-                    id="cliente"
-                    label="Nombre"
-                    style={{ margin: "10px" }}
-                  />
-                  <TextField
-                    id="direccion"
-                    label="Dirección"
-                    style={{ margin: "10px" }}
-                  />
-                </Form>
-              </CardContent>
-            </Card>
+      <ScrollToBottom mode="bottom">
+        <AdminDashboard>
+          <Grid container>
+            <Grid item xs={4}>
+              <Card>
+                <CardContent>
+                  <Form>
+                    <TextField
+                      autoFocus
+                      id="nit"
+                      label="NIT"
+                      onChange={e => {
+                        this.handleClienteChange(e, "nit");
+                      }}
+                      value={this.state.nit}
+                      style={{ margin: "10px" }}
+                    />
+                    <TextField
+                      id="cliente"
+                      label="Nombre"
+                      style={{ margin: "10px" }}
+                    />
+                    <TextField
+                      id="direccion"
+                      label="Dirección"
+                      style={{ margin: "10px" }}
+                    />
+                  </Form>
+                </CardContent>
+              </Card>
+            </Grid>
           </Grid>
-        </Grid>
 
-        <DynamicTable
-          tableHeader={this.renderTableHeader}
-          tableBody={this.renderTableBody}
-          insertRow={this.renderInsertRow}
-          tempData={this.state.tempData}
-          elementStructure={this.state.elementStructure}
-          firstInput={this.firstInput}
-          data={this.state.data}
-          syncData={this.syncData}
-          syncTempData={this.syncTempData}
-        />
+          <DynamicTable
+            tableHeader={this.renderTableHeader}
+            tableBody={this.renderTableBody}
+            insertRow={this.renderInsertRow}
+            tempData={this.state.tempData}
+            elementStructure={this.state.elementStructure}
+            firstInput={this.firstInput}
+            data={this.state.data}
+            syncData={this.syncData}
+            syncTempData={this.syncTempData}
+          />
 
-        <Grid container style={{ paddingTop: "20px" }}>
-          <Grid item xs={2}>
-            <Card>
-              <CardContent>
-                <Typography color="textSecondary" gutterBottom>
-                  Total
-                </Typography>
-                {"Q." + this.getTotal().toFixed(2)}
-              </CardContent>
-            </Card>
+          <Grid container style={{ paddingTop: "20px" }}>
+            <Grid item xs={12}>
+              <Card className={classes.card}>
+                <CardContent className={classes.content}>
+                  <Grid container>
+                    <Grid item xs={4}>
+                      <Grid container>
+                        <Grid item xs={3}>
+                          <Avatar className={classes.moneyAvatar}>
+                            <MoneyIcon className={classes.moneyIcon} />
+                          </Avatar>
+                        </Grid>
+
+                        <Grid item xs={6} className={classes.text}>
+                          <Typography
+                            color="textSecondary"
+                            component="h6"
+                            variant="h6"
+                            gutterBottom
+                          >
+                            Total
+                          </Typography>
+                          <Typography component="h5" variant="h5" gutterBottom>
+                            {"Q." + this.state.total.toFixed(2)}
+                          </Typography>
+                        </Grid>
+                      </Grid>
+                    </Grid>
+
+                    <Grid item xs={4}>
+                      <Grid container>
+                        <Grid item xs={3}>
+                          <Avatar className={classes.productsAvatar}>
+                            <ProductsIcon className={classes.productIcon} />
+                          </Avatar>
+                        </Grid>
+
+                        <Grid item xs={6} className={classes.text}>
+                          <Typography
+                            color="textSecondary"
+                            component="h6"
+                            variant="h6"
+                            gutterBottom
+                          >
+                            Articulos
+                          </Typography>
+                          <Typography component="h5" variant="h5" gutterBottom>
+                            {this.state.cantidad}
+                          </Typography>
+                        </Grid>
+                      </Grid>
+                    </Grid>
+
+                    <Grid item xs={4} className={classes.button}>
+                      <Grid container>
+                        <Grid item xs={3} />
+                        <Grid item xs={3}>
+                          <Button
+                            variant="extendedFab"
+                            aria-label="Delete"
+                            className={classes.button1}
+                          >
+                            <NavigationIcon className={classes.extendedIcon} />
+                            Terminar
+                          </Button>
+                        </Grid>
+                      </Grid>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Card>
+            </Grid>
           </Grid>
-        </Grid>
-      </AdminDashboard>
+        </AdminDashboard>
+      </ScrollToBottom>
     );
   }
 }
 
-export default Facturacion;
+Facturacion.propTypes = {
+  classes: PropTypes.object.isRequired,
+  theme: PropTypes.object.isRequired
+};
+
+export default withStyles(styles, { withTheme: true })(Facturacion);
