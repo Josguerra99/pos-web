@@ -143,10 +143,12 @@ module.exports = function(app) {
     );
   });
 
-
-    app.get("/api/getInventoryFact", (req, res) => {
+  app.get("/api/getInventoryFact", (req, res) => {
     //Comporbar sesion
-    if (!req.session.role || req.session.role !== "ADMIN"&&req.session.role!=="PUBLIC") {
+    if (
+      !req.session.role ||
+      (req.session.role !== "ADMIN" && req.session.role !== "PUBLIC")
+    ) {
       var resjson = [{ "@err": -1, message: "No autorizado" }];
       res.status(401).send(resjson);
       return;
@@ -163,6 +165,4 @@ module.exports = function(app) {
       }
     });
   });
-
-
 };

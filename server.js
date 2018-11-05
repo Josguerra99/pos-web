@@ -67,6 +67,8 @@ app.get("/api/get_session", (req, res) => {
  *INVENTARIO
  */
 require("./server/models/inventory-routes")(app);
+require("./server/models/facturacion/facturacion-routes")(app);
+require("./server/models/compras/compras-routes")(app);
 
 ///---------------Resoliciones
 
@@ -195,6 +197,7 @@ app.get("/api/reports/historialResoluciones", (req, res) => {
     }
   });
 });
+
 ///---------------Resoliciones
 
 app.get("*", (req, res) => {

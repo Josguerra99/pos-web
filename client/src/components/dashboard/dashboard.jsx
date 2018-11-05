@@ -87,7 +87,7 @@ class Dashboard extends Component {
                 </IconButton>
               </div>
               <Divider />
-              <List>{this.props.mainListItems}</List>
+              <this.props.mainListItems />
               <Divider />
               <List>{this.props.secondaryListItems}</List>
             </Drawer>

@@ -23,8 +23,6 @@ import NavigationIcon from "@material-ui/icons/Save";
 
 import Snackbar from "@material-ui/core/Snackbar";
 
-import ReportMngr from "../../common/reporter/reportMngr";
-
 const styles = theme => ({
   card: {
     // display: "flex"
@@ -85,7 +83,7 @@ const styles = theme => ({
   }
 });
 
-class Facturacion extends Component {
+class Compras extends Component {
   state = {
     productos: [],
     hasData: false,
@@ -113,7 +111,7 @@ class Facturacion extends Component {
     sendingData: false,
     open: false,
     message: "",
-    printURL: null
+    montoTotal: ""
   };
 
   constructor(props) {
@@ -159,29 +157,6 @@ class Facturacion extends Component {
       });
   }
 
-  bringCliente(nit) {
-    return fetch("/api/getCliente?nit=" + nit)
-      .then(res => res.json())
-      .then(data => {
-        if (data.length > 0) {
-          this.setState({
-            cliente: {
-              nit: this.state.cliente.nit,
-              nombre: data[0].nombre,
-              direccion: data[0].direccion
-            }
-          });
-          this.setState({ clienteExiste: true });
-        } else {
-          this.setState({
-            cliente: { nit: this.state.cliente.nit, nombre: "", direccion: "" }
-          });
-          this.setState({ clienteExiste: false });
-        }
-        this.setState({ hasData: true });
-      });
-  }
-
   getProducto(codigo) {
     const { productos } = this.state;
     let producto = productos.filter(el => {
@@ -193,14 +168,13 @@ class Facturacion extends Component {
     return producto;
   }
 
-  addFactura = (factura, callback) => {
+  addCompra = (factura, callback) => {
     this.setState({ sendingData: true });
     const requestData = {
       total: factura.total,
-      cliente: factura.cliente,
       detalle: factura.detalle
     };
-    fetch("/api/addFactura", {
+    fetch("/api/addCompra", {
       method: "POST",
       body: JSON.stringify(requestData),
       headers: {
@@ -215,15 +189,7 @@ class Facturacion extends Component {
         if (err === 0) {
           this.clear();
           this.setState({ message: "Venta realizada exitosamente" });
-          this.setState({ open: true }, () => {
-            const reportmngr = new ReportMngr();
-            reportmngr.openReport(
-              "factura?ntransaccion=" + data["ntransaccion"],
-              fireURL => {
-                window.open(fireURL).print();
-              }
-            );
-          });
+          this.setState({ open: true });
         } else {
           this.setState({ message: "Error al intentar realizar la venta" });
           this.setState({ open: true });
@@ -232,15 +198,18 @@ class Facturacion extends Component {
       });
   };
 
-  crearFactura() {
+  crearCompra() {
     var factura = {};
     factura.total = this.state.total;
-    factura.cliente = { ...this.state.cliente };
     factura.detalle = [];
     this.state.data.forEach(el => {
-      factura.detalle.push({ codigo: el.codigo, cantidad: el.cantidad });
+      factura.detalle.push({
+        codigo: el.codigo,
+        cantidad: el.cantidad,
+        precio: el.precioUnitario
+      });
     });
-    this.addFactura(factura);
+    this.addCompra(factura);
     //alert(JSON.stringify(factura));
   }
 
@@ -264,31 +233,8 @@ class Facturacion extends Component {
     this.setState({ open: false });
   };
 
-  handleClienteChange = (e, name) => {
-    if (name !== "nit" && this.state.clienteExiste) return;
-
-    var cliente = this.state.cliente;
-    cliente[name] = e.target.value;
-    this.setState({ cliente });
-  };
-
-  handleClienteBlur = e => {
-    var v = e.target.value;
-    if (
-      v === "cf" ||
-      v === "CF" ||
-      v === "." ||
-      v === " " ||
-      v === "" ||
-      v === "C.F." ||
-      v === "c.f." ||
-      v === "c.f" ||
-      v === "C.F"
-    ) {
-      v = "CF";
-    }
-    this.setState({ cliente: { nit: v, nombre: "", direccion: "" } });
-    this.bringCliente(v);
+  handleMontoChange = e => {
+    this.setState({ montoTotal: e.target.value });
   };
 
   /**
@@ -313,8 +259,8 @@ class Facturacion extends Component {
     const producto = this.getProducto(tempData.codigo);
     if (producto != null) {
       tempData.producto = producto.producto;
-      tempData.precioUnitario = producto.precioActual;
-      tempData.precio = producto.precioActual * tempData.cantidad;
+      //tempData.precioUnitario = producto.precioActual;
+      tempData.precio = tempData.precioUnitario * tempData.cantidad;
     }
 
     this.setState({ tempData });
@@ -368,7 +314,7 @@ class Facturacion extends Component {
       <React.Fragment>
         <TableCell className={classes.insertCell}>
           <TextField
-            autoFocus={this.state.cliente.nit != ""}
+            autoFocus={this.state.montoTotal != ""}
             id="codigo"
             label="Codigo"
             inputRef={this.firstInput}
@@ -393,7 +339,15 @@ class Facturacion extends Component {
         </TableCell>
 
         <TableCell className={classes.insertCell}>
-          {"Q" + tempData.precioUnitario}
+          <TextField
+            id="precio"
+            label="Precio"
+            inputRef={this.firstInput}
+            className={classes.textField}
+            value={tempData.precioUnitario}
+            onChange={e => this.handleDataChange(e, "precioUnitario")}
+            onBlur={e => this.handleDataBlur(e, "precioUnitario")}
+          />
         </TableCell>
         <TableCell className={classes.insertCell}>
           {"Q" + tempData.precio}
@@ -414,31 +368,11 @@ class Facturacion extends Component {
                   <TextField
                     autoFocus
                     inputRef={this.nitInput}
-                    id="nit"
-                    label="NIT"
-                    value={this.state.cliente.nit}
+                    id="monto"
+                    label="Monto"
+                    value={this.state.montoTotal}
                     onChange={e => {
-                      this.handleClienteChange(e, "nit");
-                    }}
-                    onBlur={this.handleClienteBlur}
-                    style={{ margin: "10px" }}
-                  />
-                  <TextField
-                    id="cliente"
-                    label="Nombre"
-                    value={this.state.cliente.nombre}
-                    onChange={e => {
-                      this.handleClienteChange(e, "nombre");
-                    }}
-                    style={{ margin: "10px" }}
-                    disabled={this.state.clienteExiste}
-                  />
-                  <TextField
-                    id="direccion"
-                    label="Dirección"
-                    value={this.state.cliente.direccion}
-                    onChange={e => {
-                      this.handleClienteChange(e, "direccion");
+                      this.handleMontoChange(e);
                     }}
                     style={{ margin: "10px" }}
                     disabled={this.state.clienteExiste}
@@ -484,7 +418,10 @@ class Facturacion extends Component {
                           Total
                         </Typography>
                         <Typography component="h5" variant="h5" gutterBottom>
-                          {"Q." + this.state.total.toFixed(2)}
+                          {"Q." +
+                            this.state.total.toFixed(2) +
+                            "/" +
+                            parseInt(this.state.montoTotal).toFixed(2)}
                         </Typography>
                       </Grid>
                     </Grid>
@@ -522,8 +459,11 @@ class Facturacion extends Component {
                           variant="extendedFab"
                           aria-label="Delete"
                           className={classes.button1}
-                          onClick={() => this.crearFactura()}
-                          disabled={this.state.sendingData}
+                          onClick={() => this.crearCompra()}
+                          disabled={
+                            this.state.sendingData ||
+                            this.state.total != parseInt(this.state.montoTotal)
+                          }
                         >
                           <NavigationIcon className={classes.extendedIcon} />
                           Terminar
@@ -548,9 +488,9 @@ class Facturacion extends Component {
   }
 }
 
-Facturacion.propTypes = {
+Compras.propTypes = {
   classes: PropTypes.object.isRequired,
   theme: PropTypes.object.isRequired
 };
 
-export default withStyles(styles, { withTheme: true })(Facturacion);
+export default withStyles(styles, { withTheme: true })(Compras);

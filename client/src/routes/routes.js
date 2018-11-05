@@ -14,7 +14,9 @@ import history from "../components/common/history";
 import Filter from "../components/common/filters";
 
 import InventoryMngr from "../components/admin/inventory/inventoryMngr";
+import Compras from "../components/admin/compras/compras";
 import Facturacion from "../components/admin/facturacion/facturacion";
+import HistorialFacturacion from "../components/admin/facturacion/historialFacturacion";
 import DynamicInsertTable from "../components/common/dynamicInsertTable/dynamicInsertTable";
 
 export default () => (
@@ -52,15 +54,24 @@ export default () => (
         render={props => <InventoryMngr {...props} />}
       />
       <Route
+        path="/admin/compras"
+        exact
+        render={props => <Compras {...props} />}
+      />{" "}
+      <Route
+        path="/admin/facturacion"
+        exact
+        render={props => <Facturacion {...props} />}
+      />
+      <Route
         path="/system/home"
         exact
         render={props => <HomeSystem {...props} />}
       />
-
       <Route
         path="/tests"
         exact
-        render={props => <Facturacion {...props} />}
+        render={props => <HistorialFacturacion {...props} />}
       />
     </Switch>
   </Router>
