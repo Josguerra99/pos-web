@@ -69,6 +69,7 @@ app.get("/api/get_session", (req, res) => {
 require("./server/models/inventory-routes")(app);
 require("./server/models/facturacion/facturacion-routes")(app);
 require("./server/models/compras/compras-routes")(app);
+require("./server/models/transacciones/transaccion-routes")(app);
 
 ///---------------Resoliciones
 

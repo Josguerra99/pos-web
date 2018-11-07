@@ -18,11 +18,15 @@ comprasMngr.addCompra = (nit_negocio, detalle, total, callback) => {
         (err, rows) => {
           if (err) {
             con.rollback(() => {
-              console.log("Error al intentar agregar la factura  " + err);
+              console.log(
+                "Error al intentar agregar el coso de compra  " + err
+              );
               callback(err, null);
               throw err;
             });
           }
+
+          console.log(rows);
           const codCompra = parseInt(rows[rows.length - 1][0]["@codCompra"]);
 
           var detalleQuery = "";

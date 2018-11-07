@@ -147,12 +147,12 @@ class NestedList extends React.Component {
             <ListItem
               button
               className={classes.nested}
-              onClick={() => history.push("/admin/inventario")}
+              onClick={() => history.push("/admin/historial-transacciones")}
             >
               <ListItemIcon>
-                <EditInventoryIcon />
+                <FindResolucionIcon />
               </ListItemIcon>
-              <ListItemText inset primary="Gestionar" />
+              <ListItemText inset primary="Historial" />
             </ListItem>
             <ListItem button className={classes.nested}>
               <ListItemIcon>
