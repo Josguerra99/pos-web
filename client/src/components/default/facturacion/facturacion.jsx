@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { withStyles } from "@material-ui/core/styles";
 import DynamicTable from "../../common/dynamicInsertTable/dynamicInsertTable";
-import AdminDashboard from "../adminDashboard";
+import DefaultDashboard from "../defaultDashboard";
 import TableCell from "@material-ui/core/TableCell";
 import TextField from "@material-ui/core/TextField";
 import filterItem from "../../common/filterOptions/filterItem";
@@ -238,7 +238,10 @@ class Facturacion extends Component {
     factura.cliente = { ...this.state.cliente };
     factura.detalle = [];
     this.state.data.forEach(el => {
-      factura.detalle.push({ codigo: el.codigo, cantidad: el.cantidad });
+      factura.detalle.push({
+        codigo: this.getProducto(el.codigo).id,
+        cantidad: el.cantidad
+      });
     });
     this.addFactura(factura);
     //alert(JSON.stringify(factura));
@@ -405,7 +408,7 @@ class Facturacion extends Component {
   render() {
     const { classes, theme } = this.props;
     return (
-      <AdminDashboard>
+      <DefaultDashboard>
         <Grid container>
           <Grid item xs={4}>
             <Card>
@@ -543,7 +546,7 @@ class Facturacion extends Component {
           ContentProps={{ "aria-describedby": "message-id" }}
           message={<span id="message-id">{this.state.message}</span>}
         />
-      </AdminDashboard>
+      </DefaultDashboard>
     );
   }
 }

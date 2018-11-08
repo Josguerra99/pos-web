@@ -161,16 +161,16 @@ facturacionMngr.getFacturas = (nit_negocio, callback) => {
 facturacionMngr.getDetalle = (nit_negocio, ntransaccion, callback) => {
   if (con) {
     con.query(
-      "SELECT D.codigoProducto AS codigo,T1.producto AS producto,D.cantidad AS cantidad,D.precioUnitarioVenta AS precioUnitario,D.precioUnitarioVenta*D.cantidad AS precioVenta FROM Detalle AS D " +
+      "SELECT D.idProducto AS codigo,T1.codigoBarras,T1.producto AS producto,D.cantidad AS cantidad,D.precioUnitarioVenta AS precioUnitario,D.precioUnitarioVenta*D.cantidad AS precioVenta FROM Detalle AS D " +
         " INNER JOIN " +
         " ( " +
-        " SELECT codigo,concat_ws('',marca.marca,' ',nombre.nombre,' ',descripcion.descripcion,' ',presentacion.presentacion,' ',inv.unidades,' unidad(es)') AS producto FROM Inventario AS inv " +
+        " SELECT inv.id AS id,inv.codigo AS codigoBarras,concat_ws('',marca.marca,' ',nombre.nombre,' ',descripcion.descripcion,' ',presentacion.presentacion,' ',inv.unidades,' unidad(es)') AS producto FROM Inventario AS inv " +
         " INNER JOIN ProductoMarca As marca ON inv.idMarca=marca.idMarca " +
         " INNER JOIN ProductoNombre As nombre ON inv.idNombre=nombre.idNombre " +
         " INNER JOIN ProductoPresentacion As presentacion ON inv.idPresentacion=presentacion.idPresentacion " +
         " INNER JOIN ProductoDescripcion As descripcion ON inv.idDescripcion=descripcion.idDescripcion WHERE inv.nit_negocio=? " +
-        " ) AS T1 ON T1.codigo=D.codigoProducto " +
-        " WHERE D.nit_negocio=? AND D.NumTransaccion=? ORDER BY T1.codigo ASC; ",
+        " ) AS T1 ON T1.id=D.idProducto " +
+        " WHERE D.nit_negocio=? AND D.NumTransaccion=? ORDER BY T1.id ASC; ",
       [nit_negocio, nit_negocio, ntransaccion],
       (err, rows) => {
         if (err) {

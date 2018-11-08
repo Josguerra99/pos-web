@@ -84,7 +84,8 @@ class ProductDescriptionTable extends Component {
         this.state.tempElement.idDescripcion,
         this.state.tempElement.descripcion,
         callback,
-        "descHasChanges"
+        "descHasChanges",
+        "description"
       );
     } else callback(0);
   };

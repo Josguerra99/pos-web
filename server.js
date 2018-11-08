@@ -57,6 +57,11 @@ app.post("/api/authenticate_user", (req, res) => {
   });
 });
 
+app.post("/api/logout", (req, res) => {
+  if (req.session) req.session.destroy();
+  res.status(200).send("Log out exitoso");
+});
+
 app.get("/api/get_session", (req, res) => {
   res.status(200).send(getSessionValues(req.session));
 });
@@ -66,7 +71,7 @@ app.get("/api/get_session", (req, res) => {
 /****
  *INVENTARIO
  */
-require("./server/models/inventory-routes")(app);
+require("./server/models/inventory/inventory-routes")(app);
 require("./server/models/facturacion/facturacion-routes")(app);
 require("./server/models/compras/compras-routes")(app);
 require("./server/models/transacciones/transaccion-routes")(app);

@@ -3,10 +3,8 @@ import AdminDashboard from "../adminDashboard";
 import PropTypes from "prop-types";
 import { withStyles } from "@material-ui/core/styles";
 import PaginationTable from "../../common/paginationTable";
-import TableRow from "@material-ui/core/TableRow";
 
 import formatDate from "date-fns/format";
-import TableCell from "@material-ui/core/TableCell";
 import Grid from "@material-ui/core/Grid";
 import IconButton from "@material-ui/core/IconButton";
 import DownloadIcon from "@material-ui/icons/GetApp";
@@ -22,6 +20,15 @@ import FilterSearch from "../../common/filterOptions/filterSearch";
 import FilterSelect from "../../common/filterOptions/filterSelect";
 import { th } from "date-fns/esm/locale";
 import nextFrame from "next-frame";
+import DialogContent from "@material-ui/core/DialogContent";
+import Dialog from "@material-ui/core/Dialog";
+import { isThisSecond } from "date-fns";
+
+import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
+import TableCell from "@material-ui/core/TableCell";
+import TableHead from "@material-ui/core/TableHead";
+import TableRow from "@material-ui/core/TableRow";
 
 const reportmngr = new ReportMngr();
 
@@ -46,6 +53,15 @@ const styles = theme => ({
   },
   button: {
     margin: theme.spacing.unit
+  },
+  table: {
+    minWidth: 700
+  },
+  dialogPaper: {
+    minHeight: "20%",
+    maxHeight: "80%",
+    minWidth: "20%",
+    maxWidth: "90%"
   }
 });
 
@@ -127,7 +143,7 @@ class HistorialFacturacion extends Component {
     // this.setState({ data: [] });
     const request = { filters: filters };
 
-    return fetch("/api/getFactura", {
+    return fetch("/api/getFacturas", {
       method: "POST",
       body: JSON.stringify(request),
       headers: {
@@ -156,10 +172,16 @@ class HistorialFacturacion extends Component {
       });
   }
 
+  /**
+   *
+   * Trae el detalle del elemento elemento actual
+   * @param {int} ntransaccion
+   */
   async bringDetalle(ntransaccion) {
     // this.setState({ hasData: false });
     // this.setState({ data: [] });
     const request = { ntransaccion: ntransaccion };
+    this.setState({ detalle: [] });
     this.setState({ hasDetalle: false });
 
     return fetch("/api/getDetalle", {
@@ -182,6 +204,9 @@ class HistorialFacturacion extends Component {
     this.bringDetalle(transaccion);
     this.setState({ openDetalle: true });
   }
+  handleDetalleClose = () => {
+    this.setState({ openDetalle: false });
+  };
 
   /*
     Se le pasa esta funcion como props para la tabla
@@ -295,7 +320,7 @@ class HistorialFacturacion extends Component {
               className={classes.button}
               aria-label="Download"
               color="primary"
-              //onClick={() => reportmngr.downloadReport("historialResoluciones")}
+              onClick={() => reportmngr.downloadReport("historialResoluciones")}
             >
               <DownloadIcon />
             </IconButton>
@@ -303,8 +328,9 @@ class HistorialFacturacion extends Component {
               className={classes.button}
               aria-label="Print"
               color="primary"
-              //onClick={() => window.open(this.state.printURL).print()}
-              disabled={this.state.printURL === null}
+              disabled={
+                this.state.printURL === null //onClick={() => window.open(this.state.printURL).print()}
+              }
             >
               <PrintIcon />
             </IconButton>
@@ -319,6 +345,40 @@ class HistorialFacturacion extends Component {
           columns={5}
           loading={!this.state.hasData}
         />
+
+        <Dialog
+          open={this.state.openDetalle}
+          onClose={this.handleDetalleClose}
+          aria-labelledby="simple-dialog-title"
+          classes={{ paper: classes.dialogPaper }}
+        >
+          <DialogContent>
+            <Table className={classes.table}>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Código</TableCell>
+                  <TableCell>Producto</TableCell>
+                  <TableCell>Cantidad</TableCell>
+                  <TableCell>Precio Unitario</TableCell>
+                  <TableCell>Sub total</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {this.state.detalle.map((row, index) => {
+                  return (
+                    <TableRow key={index}>
+                      <TableCell>{row.codigoBarras}</TableCell>
+                      <TableCell>{row.producto}</TableCell>
+                      <TableCell>{row.cantidad}</TableCell>
+                      <TableCell>{row.precioUnitario}</TableCell>
+                      <TableCell>{row.precioVenta}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </DialogContent>
+        </Dialog>
       </AdminDashboard>
     );
   }

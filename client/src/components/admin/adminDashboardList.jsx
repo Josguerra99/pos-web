@@ -23,7 +23,7 @@ import TransaccionIcon from "@material-ui/icons/Loop";
 
 import ExpandLess from "@material-ui/icons/ExpandLess";
 import ExpandMore from "@material-ui/icons/ExpandMore";
-import StarBorder from "@material-ui/icons/StarBorder";
+import FacturasIcon from "@material-ui/icons/Assignment";
 
 import history from "../common/history";
 
@@ -154,11 +154,15 @@ class NestedList extends React.Component {
               </ListItemIcon>
               <ListItemText inset primary="Historial" />
             </ListItem>
-            <ListItem button className={classes.nested}>
+            <ListItem
+              button
+              className={classes.nested}
+              onClick={() => history.push("/admin/historial-facturacion")}
+            >
               <ListItemIcon>
-                <ShopInventoryIcon />
+                <FacturasIcon />
               </ListItemIcon>
-              <ListItemText inset primary="Comprar" />
+              <ListItemText inset primary="Facturas" />
             </ListItem>
           </List>
         </Collapse>

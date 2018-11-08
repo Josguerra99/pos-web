@@ -59,7 +59,8 @@ class TableMngr extends Component {
         data = this.mapData(this.props.data);
       }
       this.setState({ data });
-      this.setState({ hasData: true });
+      if (data.length > 0) this.setState({ hasData: true });
+      else this.setState({ hasData: false });
     }
   }
 
@@ -98,7 +99,7 @@ class TableMngr extends Component {
     element.id = data.length;
     data.unshift({ ...element });
     this.setState({ data });
-    if (this.props.syncData) this.props.syncData(data);
+    if (this.props.syncData) this.props.syncData(data, "INSERT");
   };
 
   /**
@@ -111,7 +112,8 @@ class TableMngr extends Component {
     if (this.props.onUpdate != null)
       this.props.onUpdate(err => {
         if (err === 0) {
-          this.editElement();
+          this.handleDialogOpen(false);
+          //this.editElement();
         }
       });
     else {
@@ -126,8 +128,9 @@ class TableMngr extends Component {
     const element = { ...this.props.tempElement };
     element.id = id;
     data[id] = { ...element };
-    this.setState({ data });
-    if (this.props.syncData) this.props.syncData(data);
+    this.setState({ data }, () => {
+      if (this.props.syncData) this.props.syncData(data, "EDIT");
+    });
   };
 
   /**
@@ -185,7 +188,7 @@ class TableMngr extends Component {
   handleDialogOk = () => {
     if (this.state.action === "ADD") this.addElementCallback();
     if (this.state.action === "EDIT") this.editElementCallback();
-    if (this.state.action === "DELETE{") this.deleteElement();
+    if (this.state.action === "DELETE") this.deleteElement();
   };
 
   renderTableHead() {

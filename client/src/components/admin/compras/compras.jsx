@@ -204,7 +204,7 @@ class Compras extends Component {
     factura.detalle = [];
     this.state.data.forEach(el => {
       factura.detalle.push({
-        codigo: el.codigo,
+        codigo: this.getProducto(el.codigo).id,
         cantidad: el.cantidad,
         precio: el.precioUnitario
       });

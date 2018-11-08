@@ -1,10 +1,11 @@
 import React, { Component } from "react";
-import HomeDashboard from "./homeDashboard";
+import Facturacion from "./facturacion/facturacion";
 
 class HomeDefault extends Component {
   state = {};
+
   render() {
-    return <HomeDashboard />;
+    return <Facturacion />;
   }
 }
 

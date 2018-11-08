@@ -10,6 +10,7 @@ import TableMngr from "../../common/mngr/tableMngr";
 class InventoryTable extends Component {
   state = {
     elementStructure: {
+      iddb: -1,
       codigo: "",
       marca: null,
       nombre: null,
@@ -61,6 +62,7 @@ class InventoryTable extends Component {
   onUpdate = callback => {
     if (this.props.onUpdate != null) {
       const inv = {
+        iddb: this.state.tempElement.iddb,
         codigo: this.state.tempElement.codigo,
         idMarca: this.state.tempElement.marca.value,
         idNombre: this.state.tempElement.nombre.value,
@@ -123,7 +125,7 @@ class InventoryTable extends Component {
     this.setState({ tempElement });
   };
 
-  syncMemoryData = data => {
+  syncMemoryData = (data, type) => {
     this.setState({ data });
   };
 

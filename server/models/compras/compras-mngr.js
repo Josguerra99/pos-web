@@ -25,8 +25,7 @@ comprasMngr.addCompra = (nit_negocio, detalle, total, callback) => {
               throw err;
             });
           }
-
-          console.log(rows);
+          //console.log(rows);
           const codCompra = parseInt(rows[rows.length - 1][0]["@codCompra"]);
 
           var detalleQuery = "";

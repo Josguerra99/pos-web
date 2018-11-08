@@ -56,13 +56,7 @@ class Dashboard extends Component {
         <Theme>
           <CssBaseline />
           <div className={classes.root}>
-            <AppBar
-              position="absolute"
-              className={classNames(
-                classes.appBar,
-                this.state.open && classes.appBarShift
-              )}
-            >
+            <AppBar position="absolute">
               <Toolbar
                 disableGutters={!this.state.open}
                 className={classes.toolbar}
@@ -84,10 +78,15 @@ class Dashboard extends Component {
                   color="inherit"
                   noWrap
                   className={classes.title}
-                  style={{ flex: 1 }}
+                  style={{ margin: 20 }}
                 >
                   {this.props.title}
                 </Typography>
+                {this.props.icon()}
+                {
+                  //style={{ flex: 1 }}
+                }
+
                 <div>
                   <IconButton
                     aria-owns={openMenu ? "menu-appbar" : undefined}
@@ -110,26 +109,7 @@ class Dashboard extends Component {
                 </div>
               </Toolbar>
             </AppBar>
-            <Drawer
-              variant="permanent"
-              classes={{
-                paper: classNames(
-                  classes.drawerPaper,
-                  !this.state.open && classes.drawerPaperClose
-                )
-              }}
-              open={this.state.open}
-            >
-              <div className={classes.toolbarIcon}>
-                <IconButton onClick={this.handleDrawerClose}>
-                  <ChevronLeftIcon />
-                </IconButton>
-              </div>
-              <Divider />
-              {this.props.mainListItems && <this.props.mainListItems />}
-              <Divider />
-              <List>{this.props.secondaryListItems}</List>
-            </Drawer>
+
             <main className={classes.content}>
               <div className={classes.appBarSpacer} />
               {this.props.children}

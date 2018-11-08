@@ -204,7 +204,7 @@ class InventoryMngr extends Component {
       });
   };
 
-  editHelper = (type, id, name, callback, changes) => {
+  editHelper = (type, id, name, callback, changes, tabID) => {
     const requestData = {
       type: type,
       id: id,
@@ -221,13 +221,19 @@ class InventoryMngr extends Component {
       .then(data => {
         var err = data["@err"];
         if (err === 0) this.setState({ invHasChanges: true });
-        if (err === 0) this.setState({ [changes]: true });
+        if (err === 0)
+          this.setState({ [changes]: true }, () =>
+            this.bringRequiredData(tabID)
+          );
+
         callback(parseInt(err));
       });
   };
 
   editInventory = (inv, callback) => {
     const requestData = {
+      codigo: inv.codigo,
+      id: inv.iddb,
       codigo: inv.codigo,
       idMarca: inv.idMarca,
       idNombre: inv.idNombre,
@@ -246,7 +252,10 @@ class InventoryMngr extends Component {
       .then(res => res.json())
       .then(data => {
         var err = data["@err"];
-        if (err === 0) this.setState({ invHasChanges: true });
+        if (err === 0)
+          this.setState({ invHasChanges: true }, () =>
+            this.bringRequiredData("inv")
+          );
         callback(parseInt(err));
       });
   };
@@ -315,6 +324,9 @@ class InventoryMngr extends Component {
             "presentacion"
           )
         };
+
+        element.iddb = element.id;
+        delete element.id;
         delete element.idDescripcion;
         delete element.idNombre;
         delete element.idMarca;

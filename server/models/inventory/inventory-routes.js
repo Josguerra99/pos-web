@@ -131,7 +131,7 @@ module.exports = function(app) {
       req.body.idPresentacion,
       req.body.unidades,
       req.body.precioActual,
-      req.session.nit_negocio,
+      req.body.id,
       req.body.codigo,
       (err, data) => {
         if (err) {

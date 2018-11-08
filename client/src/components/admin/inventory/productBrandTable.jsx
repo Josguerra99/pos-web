@@ -70,7 +70,8 @@ class ProductBrandTable extends Component {
         this.state.tempElement.idMarca,
         this.state.tempElement.marca,
         callback,
-        "marcaHasChanges"
+        "marcaHasChanges",
+        "brand"
       );
     } else callback(0);
   };
