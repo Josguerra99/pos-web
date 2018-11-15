@@ -1,4 +1,5 @@
 const con = require("../../database/db-con");
+const FilterMngr = require("../filters-mngr");
 
 let inventoryMngr = {};
 
@@ -22,10 +23,12 @@ inventoryMngr.getInventoryFact = (nit_negocio, callback) => {
   }
 };
 
-inventoryMngr.getInventory = (nit_negocio, callback) => {
+inventoryMngr.getInventory = (nit_negocio, filters, callback) => {
   if (con) {
+    const whereQuery = FilterMngr.createFilter(filters);
     con.query(
-      "  SELECT id,codigo, idMarca, idPresentacion, idNombre, idDescripcion, stock, unidades, precioActual FROM Inventario WHERE nit_negocio = ? AND activo=TRUE; ",
+      "  SELECT id,codigo, idMarca, idPresentacion, idNombre, idDescripcion, stock, unidades, precioActual FROM Inventario WHERE nit_negocio = ? AND activo=TRUE AND " +
+        whereQuery,
       [nit_negocio],
       (err, rows) => {
         if (err) {
@@ -50,26 +53,86 @@ inventoryMngr.addInventory = (
   callback
 ) => {
   if (con) {
-    con.query(
-      "  INSERT INTO Inventario(nit_negocio,codigo,idMarca,idNombre,idDescripcion,idPresentacion,unidades,precioActual) VALUES (?,?,?,?,?,?,?,?) ",
-      [
-        nit_negocio,
-        codigo,
-        idMarca,
-        idNombre,
-        idDescripcion,
-        idPresentacion,
-        unidades,
-        precioActual
-      ],
-      (err, rows) => {
-        if (err) {
-          callback(err, { "@err": 1 });
-        } else {
-          callback(null, { "@err": 0 });
-        }
+    con.beginTransaction(function(err) {
+      if (err) {
+        console.log(err);
+        callback(err, null);
+        return;
       }
-    );
+
+      con.query(
+        "SELECT COUNT(*) AS c1 FROM Inventario WHERE nit_negocio=? AND idMarca=? AND idNombre=? AND idDescripcion=? AND idPresentacion=? AND unidades=? AND activo=TRUE; " +
+          "SELECT COUNT(*) AS c2 FROM Inventario WHERE nit_negocio=? AND codigo=? AND activo=TRUE;",
+        [
+          nit_negocio,
+          idMarca,
+          idNombre,
+          idDescripcion,
+          idPresentacion,
+          unidades,
+          nit_negocio,
+          codigo
+        ],
+        (err, rows) => {
+          if (err) {
+            con.rollback(() => {
+              console.log("Error al intentar ingresar inventario : \n" + err);
+              callback(err, null);
+              return;
+            });
+          }
+          const c1 = parseInt(rows[0][0]["c1"]);
+          const c2 = parseInt(rows[1][0]["c2"]);
+
+          if (c1 >= 1 || c2 >= 1) {
+            con.commit(err => {
+              if (err) {
+                con.rollback(function() {
+                  callback(err, null);
+                  return;
+                });
+              }
+              const errCode = c1 >= 1 ? 100 : 101;
+              callback(null, {
+                "@err": errCode,
+                message: "Nombre repetido"
+              });
+            });
+            return;
+          }
+          con.query(
+            "  INSERT INTO Inventario(nit_negocio,codigo,idMarca,idNombre,idDescripcion,idPresentacion,unidades,precioActual) VALUES (?,?,?,?,?,?,?,?) ",
+            [
+              nit_negocio,
+              codigo,
+              idMarca,
+              idNombre,
+              idDescripcion,
+              idPresentacion,
+              unidades,
+              precioActual
+            ],
+            (err, rows) => {
+              if (err) {
+                console.log("Error al intentar inentario : \n" + err);
+                callback(err, { "@err": 1 });
+                return;
+              } else {
+                con.commit(err => {
+                  if (err) {
+                    con.rollback(function() {
+                      callback(err, null);
+                      return;
+                    });
+                  }
+                  callback(null, { "@err": 0 });
+                });
+              }
+            }
+          );
+        }
+      );
+    });
   }
 };
 
@@ -103,7 +166,7 @@ inventoryMngr.editInventory = (
           console.log(
             "Error intentando actualizar registro del inventario \n" + err
           );
-          callback(err, { "@err": 1 });
+          callback(err, { "@err": 100 });
         } else {
           console.log("Inventario actualizado exitosamente");
           callback(null, { "@err": 0 });
@@ -149,26 +212,80 @@ getItemValues = type => {
 inventoryMngr.insertItem = (nit_negocio, type, name, callback) => {
   if (con) {
     const element = getItemValues(type);
-    con.query(
-      "INSERT INTO ?? (nit_negocio,??) VALUES (?,?) ",
-      [element.tableName, element.name, nit_negocio, name],
-      (err, rows) => {
-        if (err) {
-          console.log("Error al intentar ingresar " + type + ", ya existe?");
-          callback(err, { "@err": 1 });
-        } else {
-          callback(null, { "@err": 0 });
-        }
+
+    con.beginTransaction(function(err) {
+      if (err) {
+        console.log(err);
+        callback(err, null);
+        return;
       }
-    );
+
+      con.query(
+        "SELECT COUNT(*) AS c FROM ?? WHERE nit_negocio=? AND activo=TRUE AND  ??=?;",
+        [element.tableName, nit_negocio, element.name, name],
+        (err, rows) => {
+          if (err) {
+            con.rollback(() => {
+              console.log("Error al intentar ingresar " + type + " : \n" + err);
+              callback(err, null);
+              return;
+            });
+          }
+          const c = parseInt(rows[0]["c"]);
+
+          if (c >= 1) {
+            con.commit(err => {
+              if (err) {
+                con.rollback(function() {
+                  callback(err, null);
+                  return;
+                });
+              }
+              callback(null, {
+                "@err": 100,
+                message: "Nombre repetido"
+              });
+            });
+            return;
+          }
+
+          con.query(
+            "INSERT INTO ?? (nit_negocio,??) VALUES (?,?) ",
+            [element.tableName, element.name, nit_negocio, name],
+            (err, rows) => {
+              if (err) {
+                console.log(
+                  "Error al intentar ingresar " + type + " : \n" + err
+                );
+                callback(err, { "@err": 1 });
+                return;
+              } else {
+                con.commit(err => {
+                  if (err) {
+                    con.rollback(function() {
+                      callback(err, null);
+                      return;
+                    });
+                  }
+                  callback(null, { "@err": 0 });
+                });
+              }
+            }
+          );
+        }
+      );
+    });
   }
 };
 
-inventoryMngr.getItem = (nit_negocio, type, callback) => {
+inventoryMngr.getItem = (nit_negocio, type, filters, callback) => {
   if (con) {
     const element = getItemValues(type);
+    const whereQuery = FilterMngr.createFilter(filters);
     con.query(
-      "SELECT ??, ?? FROM ?? WHERE nit_negocio = ? AND activo=True ORDER BY ?? DESC; ",
+      "SELECT ??, ?? FROM ?? WHERE nit_negocio = ? AND activo=True AND" +
+        whereQuery +
+        " ORDER BY ?? DESC ",
       [
         element.idName,
         element.name,

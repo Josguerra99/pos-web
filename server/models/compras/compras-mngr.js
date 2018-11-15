@@ -3,18 +3,18 @@ const con = require("../../database/db-con");
 const mysql = require("mysql");
 let comprasMngr = {};
 
-comprasMngr.addCompra = (nit_negocio, detalle, total, callback) => {
+comprasMngr.addCompra = (nit_negocio, detalle, total, parcial, callback) => {
   if (con) {
     con.beginTransaction(function(err) {
       if (err) {
         console.log(err);
         callback(err, null);
-        throw err;
+        return;
       }
 
       con.query(
-        "SET @codCompra=-1; CALL add_compra(?,?,@codCompra); SELECT @codCompra;",
-        [nit_negocio, total],
+        "SET @codCompra=-1; CALL add_compra(?,?,?,@codCompra); SELECT @codCompra;",
+        [nit_negocio, total, parcial],
         (err, rows) => {
           if (err) {
             con.rollback(() => {
@@ -22,7 +22,7 @@ comprasMngr.addCompra = (nit_negocio, detalle, total, callback) => {
                 "Error al intentar agregar el coso de compra  " + err
               );
               callback(err, null);
-              throw err;
+              return;
             });
           }
           //console.log(rows);
@@ -51,14 +51,14 @@ comprasMngr.addCompra = (nit_negocio, detalle, total, callback) => {
                   "Error al intentar agregar el detalle de compra " + err
                 );
                 callback(err, null);
-                throw err;
+                return;
               });
             } else {
               con.commit(err => {
                 if (err) {
                   con.rollback(function() {
                     callback(err, null);
-                    throw err;
+                    return;
                   });
                 }
 
@@ -90,23 +90,29 @@ comprasMngr.getFactura = (nit_negocio, callback) => {
   }
 };
 
-comprasMngr.getDetalle = (nit_negocio, ntransaccion, callback) => {
+comprasMngr.getParcial = (nit_negocio, callback) => {
   if (con) {
     con.query(
-      "SELECT D.codigoProducto,T1.producto,D.cantidad,D.precioUnitarioVenta,D.precioUnitarioVenta*D.cantidad AS precioVenta FROM Detalle AS D " +
-        " INNER JOIN " +
-        " ( " +
-        " SELECT codigo,concat_ws('',marca.marca,' ',nombre.nombre,' ',descripcion.descripcion,' ',presentacion.presentacion,' ',inv.unidades,' unidad(es)') AS producto FROM Inventario AS inv " +
-        " INNER JOIN ProductoMarca As marca ON inv.idMarca=marca.idMarca " +
-        " INNER JOIN ProductoNombre As nombre ON inv.idNombre=nombre.idNombre " +
-        " INNER JOIN ProductoPresentacion As presentacion ON inv.idPresentacion=presentacion.idPresentacion " +
-        " INNER JOIN ProductoDescripcion As descripcion ON inv.idDescripcion=descripcion.idDescripcion WHERE inv.nit_negocio=? " +
-        " ) AS T1 ON T1.codigo=D.codigoProducto " +
-        " WHERE D.nit_negocio=? AND D.NumTransaccion=? ORDER BY T1.codigo ASC; ",
-      [nit_negocio, nit_negocio, ntransaccion],
+      "SELECT cod,fecha,monto FROM Compra WHERE parcial=TRUE AND nit_negocio= ?; ",
+      [nit_negocio],
       (err, rows) => {
         if (err) {
-          console.log("Error al intentar traer el detalle ");
+          console.log("Error al intentar traer compra parcial \n" + err);
+        }
+        callback(err, rows);
+      }
+    );
+  }
+};
+
+comprasMngr.getDetalleParcial = (nit_negocio, codCompra, callback) => {
+  if (con) {
+    con.query(
+      "SELECT cod,idProducto,codigoCompra,cantidad,precioUnitarioCompra FROM DetalleCompra WHERE codigoCompra=? AND nit_negocio=? ",
+      [codCompra, nit_negocio],
+      (err, rows) => {
+        if (err) {
+          console.log("Error al intentar traer el detalle : " + err);
         }
         callback(err, rows);
       }

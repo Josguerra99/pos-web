@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import AdminDashboard from "./adminDashboard";
+import AdminDashboard from "../adminDashboard";
 import PropTypes from "prop-types";
 import { withStyles } from "@material-ui/core/styles";
 import Card from "@material-ui/core/Card";
@@ -11,7 +11,7 @@ import Input from "@material-ui/core/Input";
 import Typography from "@material-ui/core/Typography";
 import DatePicker from "material-ui-pickers/DatePicker";
 import Grid from "@material-ui/core/Grid";
-import styles from "../themes/agregarResolucionStyles";
+import styles from "../../themes/agregarResolucionStyles";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
@@ -21,13 +21,14 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import AutoComplete from "../common/autocompleter";
+import AutoComplete from "../../common/autocompleter";
 import formatDate from "date-fns/format";
-import IntRange from "../common/rangeInt";
+import IntRange from "../../common/rangeInt";
 import FormHelperText from "@material-ui/core/FormHelperText";
 import Snackbar from "@material-ui/core/Snackbar";
-import history from "../common/history";
-import WarningMessage from "../common/warningMessage";
+import history from "../../common/history";
+import WarningMessage from "../../common/warningMessage";
+import TextField from "@material-ui/core/TextField";
 
 const suggestions = [
   { value: "FAC", label: "Factura" },
@@ -55,7 +56,7 @@ class AgregarResolucionAdmin extends Component {
   };
   constructor() {
     super();
-    this.tryToSubmitForm = this.tryToSubmitForm.bind(this);
+    this.checkForm = this.checkForm.bind(this);
     this.tryToAddRes = this.tryToAddRes.bind(this);
   }
 
@@ -112,10 +113,36 @@ class AgregarResolucionAdmin extends Component {
       });
   }
 
-  tryToSubmitForm(e) {
+  /**
+   * Va a hacer revisiones en el formulario para que solo se envie
+   * cuando este tenga datos validos ingresados
+   * @param {*} e  evento de abrir cuadro de dialogo
+   *
+   */
+  checkForm(e) {
     e.preventDefault();
     if (this.state.doc == null || JSON.stringify(this.state.doc) === "[]") {
+      this.handleOpenSnack("Ingresa un documento");
       this.setState({ hasErrorsDoc: true });
+      return;
+    }
+
+    if (
+      this.state.inicio >= this.state.fin ||
+      this.state.inicio === "" ||
+      this.state.fin === ""
+    ) {
+      this.handleOpenSnack("Rango invalido en inicio y fin");
+      return;
+    }
+
+    if (this.state.inicio > 9999999999) {
+      this.handleOpenSnack("Inicio tiene un número demasiado grande");
+      return;
+    }
+
+    if (this.state.fin > 9999999999) {
+      this.handleOpenSnack("Fin tiene un número demasiado grande");
       return;
     }
 
@@ -264,7 +291,7 @@ class AgregarResolucionAdmin extends Component {
             >
               Ingresar resolución
             </Typography>
-            <form className={classes.form} onSubmit={this.tryToSubmitForm}>
+            <form className={classes.form} onSubmit={this.checkForm}>
               <FormControl
                 margin="normal"
                 required
@@ -288,7 +315,7 @@ class AgregarResolucionAdmin extends Component {
               <Grid container spacing={24}>
                 <Grid item xs={6}>
                   <FormControl margin="normal" required fullWidth>
-                    <InputLabel htmlFor="nresolucion">
+                    <InputLabel htmlFor="nresolucion" maxLength="25">
                       Número de resolución
                     </InputLabel>
                     <Input
@@ -296,6 +323,9 @@ class AgregarResolucionAdmin extends Component {
                       name="nresolucion"
                       onBlur={this.handleNResChange}
                       autoComplete="off"
+                      inputProps={{
+                        maxLength: 25
+                      }}
                     />
                   </FormControl>
                 </Grid>
@@ -307,6 +337,9 @@ class AgregarResolucionAdmin extends Component {
                       name="serie"
                       onBlur={this.handleSerieChange}
                       autoComplete="off"
+                      inputProps={{
+                        maxLength: 10
+                      }}
                     />
                   </FormControl>
                 </Grid>

@@ -140,18 +140,36 @@ class CustomPaginationActionsTable extends React.Component {
   renderTableBody(rows, page, rowsPerPage, emptyRows) {
     const { loading, bodyMap, columns } = this.props;
     if (!loading) {
-      return (
-        <TableBody>
-          {rows
-            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map(row => bodyMap(row))}
-          {emptyRows > 0 && (
-            <TableRow style={{ height: 48 * emptyRows }}>
-              <TableCell colSpan={6} />
+      if (rows.length > 0) {
+        return (
+          <TableBody>
+            {rows
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .map(row => bodyMap(row))}
+            {emptyRows > 0 && (
+              <TableRow style={{ height: 48 * emptyRows }}>
+                <TableCell colSpan={6} />
+              </TableRow>
+            )}
+          </TableBody>
+        );
+      } else {
+        return (
+          <TableBody>
+            <TableRow>
+              <TableCell colSpan={columns}>
+                <Grid
+                  container
+                  justify="center"
+                  style={{ fontSize: 14, padding: 10 }}
+                >
+                  No existen datos
+                </Grid>
+              </TableCell>
             </TableRow>
-          )}
-        </TableBody>
-      );
+          </TableBody>
+        );
+      }
     } else {
       return (
         <TableBody>

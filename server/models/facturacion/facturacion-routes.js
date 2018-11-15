@@ -3,7 +3,7 @@ const Facturacion = require("./facturacion-mngr");
 const Factura = require("../../reports/factura");
 
 module.exports = function(app) {
-  app.get("/api/reports/factura", (req, res) => {
+  app.post("/api/reports/factura", (req, res) => {
     if (
       !req.session.role ||
       (req.session.role !== "ADMIN" && req.session.role !== "PUBLIC")
@@ -26,7 +26,7 @@ module.exports = function(app) {
           ]);
         } else {
           Facturacion.getDetalle(
-            "7339404-3",
+            req.session.nit_negocio,
             req.query.ntransaccion,
             (err, detalle) => {
               if (err) {
@@ -80,16 +80,16 @@ module.exports = function(app) {
   });
 
   app.get("/api/getFacturaData", (req, res) => {
-    /*if (
+    if (
       !req.session.role ||
       (req.session.role !== "ADMIN" && req.session.role !== "PUBLIC")
     ) {
       var resjson = [{ "@err": -1, message: "No autorizado" }];
       res.status(401).send(resjson);
       return;
-    }*/
+    }
     Facturacion.getFacturaData(
-      "7339404-3",
+      req.session.nit_negocio,
       req.query.ntransaccion,
       (err, data) => {
         if (err) {

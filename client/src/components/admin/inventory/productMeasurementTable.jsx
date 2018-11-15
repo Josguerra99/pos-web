@@ -123,9 +123,12 @@ class ProductMeasurmentTable extends Component {
         label="Nombre"
         type="text"
         autoComplete="false"
+        required
+        autoComplete="off"
         value={this.state.tempElement.presentacion}
         onChange={this.handleName}
         fullWidth
+        inputProps={{ maxLength: 30 }}
       />
     );
   };
@@ -146,6 +149,8 @@ class ProductMeasurmentTable extends Component {
         dialogName="presentación"
         onInsert={this.onInsert}
         onUpdate={this.onUpdate}
+        hasData={this.props.hasData}
+        messageHandler={this.props.messageHandler}
       />
     );
   }

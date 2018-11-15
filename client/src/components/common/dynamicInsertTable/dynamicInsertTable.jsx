@@ -70,6 +70,9 @@ class DynamicInsertTable extends Component {
     this.props.firstInput.current.focus();
   };
   doneEditing = () => {
+    if (this.props.checkBeforeAdd && !this.props.checkBeforeAdd()) {
+      return;
+    }
     const { tempData } = this.props;
     const data = [...this.props.data];
     data[tempData.id] = tempData;
@@ -86,6 +89,10 @@ class DynamicInsertTable extends Component {
   };
 
   insertRow = () => {
+    if (this.props.checkBeforeAdd && !this.props.checkBeforeAdd()) {
+      return;
+    }
+
     let data = [...this.props.data];
     let tempData = { ...this.props.tempData };
     tempData.id = data.length;

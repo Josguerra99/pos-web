@@ -12,6 +12,12 @@ import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import Typography from "@material-ui/core/Typography";
 
+import Filters from "../../common/filters";
+import FilterNumberRange from "../../common/filterOptions/filterNumberRange";
+import FilterSearch from "../../common/filterOptions/filterSearch";
+import FilterSelect from "../../common/filterOptions/filterSelect";
+import Grid from "@material-ui/core/Grid";
+
 function TabContainer(props) {
   return (
     <Typography
@@ -46,8 +52,48 @@ class InventoryMngr extends Component {
     presHasChanges: false,
     marcaHasChanges: false,
     descHasChanges: false,
-    nombHasChanges: false
+    nombHasChanges: false,
+    hasInventarioData: false,
+    hasNombreData: false,
+    hasMarcaData: false,
+    hasDescripcionData: false,
+    hasPresentacionData: false
   };
+
+  constructor(props) {
+    super(props);
+    this.marca = React.createRef();
+    this.nombre = React.createRef();
+    this.descripcion = React.createRef();
+    this.presentacion = React.createRef();
+    this.inventarioCodigo = React.createRef();
+    this.inventarioPrecio = React.createRef();
+    this.inventarioStock = React.createRef();
+
+    const refsMarca = [];
+    refsMarca.push(this.marca);
+    this.state.refsMarca = refsMarca;
+
+    const refsNombre = [];
+    refsNombre.push(this.nombre);
+    this.state.refsNombre = refsNombre;
+
+    const refsDescripcion = [];
+    refsDescripcion.push(this.descripcion);
+    this.state.refsDescripcion = refsDescripcion;
+
+    const refsPresentacion = [];
+    refsPresentacion.push(this.presentacion);
+    this.state.refsPresentacion = refsPresentacion;
+
+    const refsInventario = [];
+    refsInventario.push(this.inventarioCodigo);
+    refsInventario.push(this.inventarioPrecio);
+    refsInventario.push(this.inventarioStock);
+    this.state.refsInventario = refsInventario;
+
+    this.handleFilterNamesBefore = this.handleFilterNamesBefore.bind(this);
+  }
 
   componentDidMount() {
     this.bringAllData();
@@ -56,19 +102,19 @@ class InventoryMngr extends Component {
   /**
    * Funciones para traer datos
    */
-  async bringAllData() {
-    this.setState({ datosInventario: [] });
-    this.setState({ datosNombre: [] });
-    this.setState({ datosDescripcion: [] });
-    this.setState({ datosPresentacion: [] });
-    this.setState({ datosMarca: [] });
+  async bringAllData(filters = []) {
+    this.setState({ datosInventario: [], hasInventarioData: false });
+    this.setState({ datosNombre: [], hasNombreData: false });
+    this.setState({ datosDescripcion: [], hasDescripcionData: false });
+    this.setState({ datosPresentacion: [], hasPresentacionData: false });
+    this.setState({ datosMarca: [], hasMarcaData: false });
     await this.bringHelpersParallel().then(() => {
-      Promise.resolve(this.bringInventory()).then(() => {
-        this.setState({ invHasChanges: false });
-        this.setState({ nombHasChanges: false });
-        this.setState({ marcaHasChanges: false });
-        this.setState({ descHasChanges: false });
-        this.setState({ presHasChanges: false });
+      Promise.resolve(this.bringInventory(filters)).then(() => {
+        this.setState({ invHasChanges: false, hasInventarioData: true });
+        this.setState({ nombHasChanges: false, hasNombreData: true });
+        this.setState({ marcaHasChanges: false, hasMarcaData: true });
+        this.setState({ descHasChanges: false, hasDescripcionData: true });
+        this.setState({ presHasChanges: false, hasPresentacionData: true });
       });
     });
   }
@@ -82,25 +128,29 @@ class InventoryMngr extends Component {
     if (value === "inv" && this.state.invHasChanges) {
       Promise.resolve(this.bringAllData()).then(() => {});
     } else if (value === "brand" && this.state.marcaHasChanges) {
-      this.setState({ datosMarca: [] });
+      this.setState({ datosMarca: [], hasMarcaData: false });
       Promise.resolve(this.bringHelpers("datosMarca", "MARCA")).then(() =>
-        this.setState({ marcaHasChanges: false })
+        this.setState({ marcaHasChanges: false, hasMarcaData: true })
       );
     } else if (value === "product" && this.state.nombHasChanges) {
-      this.setState({ datosNombre: [] });
+      this.setState({ datosNombre: [], hasNombreData: false });
       Promise.resolve(this.bringHelpers("datosNombre", "NOMBRE")).then(() =>
-        this.setState({ nombHasChanges: false })
+        this.setState({ nombHasChanges: false, hasNombreData: true })
       );
     } else if (value === "description" && this.state.descHasChanges) {
-      this.setState({ datosDescripcion: [] });
+      this.setState({ datosDescripcion: [], hasDescripcionData: false });
       Promise.resolve(
         this.bringHelpers("datosDescripcion", "DESCRIPCION")
-      ).then(() => this.setState({ descHasChanges: false }));
+      ).then(() =>
+        this.setState({ descHasChanges: false, hasDescripcionData: true })
+      );
     } else if (value === "measurment" && this.state.presHasChanges) {
-      this.setState({ datosPresentacion: [] });
+      this.setState({ datosPresentacion: [], hasPresentacionData: false });
       Promise.resolve(
         this.bringHelpers("datosPresentacion", "PRESENTACION")
-      ).then(() => this.setState({ presHasChanges: false }));
+      ).then(() =>
+        this.setState({ presHasChanges: false, hasPresentacionData: true })
+      );
     }
   }
 
@@ -122,15 +172,25 @@ class InventoryMngr extends Component {
    * @param {*} stateName nombre del estado a cambiar
    * @param {*} type tipo de helper a traer (MARCA/DESCRIPCION/NOMBRE/PRESENTACION)
    */
-  bringHelpers(stateName, type) {
+  bringHelpers(stateName, type, filters = []) {
+    const request = { filters: filters, type: type };
     //Realizar peticion get
-    return fetch("/api/getInventoryHelper?type=" + type)
+
+    //return fetch("/api/getInventoryHelper?type=" + type)
+
+    return fetch("/api/getInventoryHelper", {
+      method: "POST",
+      body: JSON.stringify(request),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    })
       .then(res => res.json())
       .then(data => {
         if (data.length > 0) {
           this.setState({ [stateName]: data });
         } else {
-          this.setState({ [stateName]: null });
+          this.setState({ [stateName]: [] });
         }
         this.setState({ hasData: true });
       });
@@ -139,15 +199,23 @@ class InventoryMngr extends Component {
   /**
    * Encargado de ir a traer el inventario completo a la db
    */
-  bringInventory() {
+  bringInventory(filters = []) {
     //Realizar peticion get
-    return fetch("/api/getInventory")
+
+    const request = { filters: filters };
+    return fetch("/api/getInventory", {
+      method: "POST",
+      body: JSON.stringify(request),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    })
       .then(res => res.json())
       .then(data => {
         if (data.length > 0) {
           this.updateData(data);
         } else {
-          this.setState({ datosInventario: null });
+          this.setState({ datosInventario: [] });
         }
         this.setState({ hasData: true });
       });
@@ -261,6 +329,28 @@ class InventoryMngr extends Component {
   };
 
   /**
+   * Maneja los mensajes que se le mostraran al usuario dependiendo del codigo que
+   * haya retornado
+   */
+  messageHandler(code, action) {
+    if (code === 0) {
+      return "Agregado exitosamente";
+    }
+    if (code === 1) {
+      return "Error desconocido";
+    }
+    if (code === -1) {
+      return "No autorizado";
+    }
+    if (code === 100) {
+      return "No se pudo ingresar, valores repetidos";
+    }
+    if (code === 101) {
+      return "No se pudo ingresar, código de barras repetido";
+    }
+  }
+
+  /**
    * Filtra un elemento (que sea igual) y retorna la primera columna
    * que obtuvo el filtrado
    *
@@ -342,6 +432,44 @@ class InventoryMngr extends Component {
     this.setState({ value });
   };
 
+  async handleFilterNamesBefore(hasDataName, changesName, dataName) {
+    this.setState({ [hasDataName]: false, [changesName]: true });
+    this.setState({ [dataName]: [] });
+  }
+
+  /**
+   * Va a traer los datos de las resoluciones pero esta vez los va a traer con los filtros
+   * que le pasemos
+   * @param {Array} filters Array de filtros que les sera pasado por el componente Filters
+   */
+  handleFilterNamesAfter = (
+    stateName,
+    type,
+    hasDataName,
+    changesName,
+    filters
+  ) => {
+    return Promise.resolve(
+      Promise.resolve(this.bringHelpers(stateName, type, filters)).then(() =>
+        this.setState({ [changesName]: false, [hasDataName]: true })
+      )
+    );
+  };
+
+  async handleFilterInventoryBefore() {
+    this.setState({ hasInventarioData: false, invHasChanges: true });
+    this.setState({ datosInventario: [] });
+  }
+
+  /**
+   * Va a traer los datos de las resoluciones pero esta vez los va a traer con los filtros
+   * que le pasemos
+   * @param {Array} filters Array de filtros que les sera pasado por el componente Filters
+   */
+  handleFilterInventoryAfter = filters => {
+    return Promise.resolve(this.bringAllData(filters));
+  };
+
   render() {
     const { classes } = this.props;
     const { value } = this.state;
@@ -359,6 +487,36 @@ class InventoryMngr extends Component {
           </AppBar>
           {value === "inv" && (
             <TabContainer>
+              <Grid container>
+                <Filters
+                  refs={this.state.refsInventario}
+                  afterFilters={filters => {
+                    return this.handleFilterInventoryAfter(filters);
+                  }}
+                  beforeFilters={() => {
+                    this.handleFilterInventoryBefore();
+                  }}
+                >
+                  <FilterSearch
+                    id={"codigo"}
+                    name={"Código"}
+                    label={"Código"}
+                    ref={this.inventarioCodigo}
+                  />
+                  <FilterNumberRange
+                    id={"stock"}
+                    name={"Stock"}
+                    label={"Cantidad"}
+                    ref={this.inventarioStock}
+                  />
+                  <FilterNumberRange
+                    id={"precioActual"}
+                    name={"Precio"}
+                    label={"Precio"}
+                    ref={this.inventarioPrecio}
+                  />
+                </Filters>
+              </Grid>
               <InventoryTable
                 data={this.state.datosInventario}
                 datosMarca={this.state.datosMarca}
@@ -367,42 +525,165 @@ class InventoryMngr extends Component {
                 datosPresentacion={this.state.datosPresentacion}
                 onInsert={this.addInventory}
                 onUpdate={this.editInventory}
+                hasData={this.state.hasInventarioData}
+                messageHandler={this.messageHandler}
               />
             </TabContainer>
           )}
           {value === "brand" && (
             <TabContainer>
+              <Grid container>
+                <Filters
+                  refs={this.state.refsMarca}
+                  afterFilters={filters => {
+                    return this.handleFilterNamesAfter(
+                      "datosMarca",
+                      "MARCA",
+                      "hasMarcaData",
+                      "marcaHasChanges",
+                      filters
+                    );
+                  }}
+                  beforeFilters={() => {
+                    this.handleFilterNamesBefore(
+                      "hasMarcaData",
+                      "marcaHasChanges",
+                      "datosMarca"
+                    );
+                  }}
+                >
+                  <FilterSearch
+                    id={"marca"}
+                    name={"Marca"}
+                    label={"Marca"}
+                    ref={this.marca}
+                  />
+                </Filters>
+              </Grid>
+
               <ProductBrandTable
                 data={this.state.datosMarca}
                 onInsert={this.addHelper}
                 onUpdate={this.editHelper}
+                hasData={this.state.hasMarcaData}
+                messageHandler={this.messageHandler}
               />
             </TabContainer>
           )}
           {value === "product" && (
             <TabContainer>
+              <Grid container>
+                <Filters
+                  refs={this.state.refsNombre}
+                  afterFilters={filters => {
+                    return this.handleFilterNamesAfter(
+                      "datosNombre",
+                      "NOMBRE",
+                      "hasNombreData",
+                      "nombHasChanges",
+                      filters
+                    );
+                  }}
+                  beforeFilters={() => {
+                    this.handleFilterNamesBefore(
+                      "hasNombreData",
+                      "nombHasChanges",
+                      "datosNombre"
+                    );
+                  }}
+                >
+                  <FilterSearch
+                    id={"nombre"}
+                    name={"Nombre"}
+                    label={"Nombre"}
+                    ref={this.nombre}
+                  />
+                </Filters>
+              </Grid>
               <ProductNamesTable
                 data={this.state.datosNombre}
                 onInsert={this.addHelper}
                 onUpdate={this.editHelper}
+                hasData={this.state.hasNombreData}
+                messageHandler={this.messageHandler}
               />
             </TabContainer>
           )}
           {value === "description" && (
             <TabContainer>
+              <Grid container>
+                <Filters
+                  refs={this.state.refsDescripcion}
+                  afterFilters={filters => {
+                    return this.handleFilterNamesAfter(
+                      "datosDescripcion",
+                      "DESCRIPCION",
+                      "hasDescripcionData",
+                      "descHasChanges",
+                      filters
+                    );
+                  }}
+                  beforeFilters={() => {
+                    this.handleFilterNamesBefore(
+                      "hasDescripcionData",
+                      "descHasChanges",
+                      "datosDescripcion"
+                    );
+                  }}
+                >
+                  <FilterSearch
+                    id={"descripcion"}
+                    name={"Descripción"}
+                    label={"Descripción"}
+                    ref={this.descripcion}
+                  />
+                </Filters>
+              </Grid>
               <ProductDescriptionTable
                 data={this.state.datosDescripcion}
                 onInsert={this.addHelper}
                 onUpdate={this.editHelper}
+                hasData={this.state.hasInventarioData}
+                messageHandler={this.messageHandler}
               />
             </TabContainer>
           )}
           {value === "measurment" && (
             <TabContainer>
+              <Grid container>
+                <Filters
+                  refs={this.state.refsPresentacion}
+                  afterFilters={filters => {
+                    return this.handleFilterNamesAfter(
+                      "datosPresentacion",
+                      "PRESENTACION",
+                      "hasPresentacionData",
+                      "presHasChanges",
+                      filters
+                    );
+                  }}
+                  beforeFilters={() => {
+                    this.handleFilterNamesBefore(
+                      "hasPresentacionData",
+                      "presHasChanges",
+                      "datosPresentacion"
+                    );
+                  }}
+                >
+                  <FilterSearch
+                    id={"presentacion"}
+                    name={"Presentación"}
+                    label={"Presentación"}
+                    ref={this.presentacion}
+                  />
+                </Filters>
+              </Grid>
               <ProductMeasurmentTable
                 data={this.state.datosPresentacion}
                 onInsert={this.addHelper}
                 onUpdate={this.editHelper}
+                hasData={this.state.hasPresentacionData}
+                messageHandler={this.messageHandler}
               />
             </TabContainer>
           )}

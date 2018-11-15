@@ -9,7 +9,9 @@ import Theme from "../../themes/defaulTheme";
 class AddEditDialog extends Component {
   state = {};
 
-  handleOk = () => {
+  handleOk = e => {
+    e.preventDefault();
+    if (this.props.checkForm && !this.props.checkForm()) return;
     if (this.props.handleOk) this.props.handleOk();
   };
 
@@ -27,21 +29,20 @@ class AddEditDialog extends Component {
           aria-labelledby="alert-dialog-title"
           aria-describedby="alert-dialog-description"
         >
-          <DialogTitle id="alert-dialog-title">{this.props.title}</DialogTitle>
-          <DialogContent>{this.props.children}</DialogContent>
-          <DialogActions>
-            <Button onClick={this.handleClose} color="primary">
-              Cancelar
-            </Button>
-            <Button
-              disabled={!this.props.open}
-              onClick={this.handleOk}
-              color="primary"
-              type="submit"
-            >
-              Aceptar
-            </Button>
-          </DialogActions>
+          <form onSubmit={this.handleOk}>
+            <DialogTitle id="alert-dialog-title">
+              {this.props.title}
+            </DialogTitle>
+            <DialogContent>{this.props.children}</DialogContent>
+            <DialogActions>
+              <Button onClick={this.handleClose} color="primary">
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={!this.props.open} color="primary">
+                Aceptar
+              </Button>
+            </DialogActions>
+          </form>
         </Dialog>
       </Theme>
     );

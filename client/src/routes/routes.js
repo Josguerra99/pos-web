@@ -2,13 +2,16 @@ import React from "react";
 import { Router, Route, Switch } from "react-router-dom";
 import SignIn from "../components/signin/signin";
 
+import Home from "../components/everyone/home";
+import RegistroPro from "../components/everyone/registro/pro";
+
 import HomeDefault from "../components/default/homedefault";
 import HomeSystem from "../components/system/homesystem";
 
 import HomeAdmin from "../components/admin/homeadmin";
-import AgregarResolucionAdmin from "../components/admin/agregarResolucion";
-import HistorialResoluiciones from "../components/admin/historialResoluciones";
-import ResolucionesActivas from "../components/admin/resolucionesActivas";
+import AgregarResolucionAdmin from "../components/admin/resoluciones/agregarResolucion";
+import HistorialResoluiciones from "../components/admin/resoluciones/historialResoluciones";
+import ResolucionesActivas from "../components/admin/resoluciones/resolucionesActivas";
 
 import history from "../components/common/history";
 import Filter from "../components/common/filters";
@@ -18,6 +21,8 @@ import Compras from "../components/admin/compras/compras";
 import Facturacion from "../components/default/facturacion/facturacion";
 import HistorialTransacciones from "../components/admin/historialTransacciones";
 import HistorialFacturacion from "../components/admin/facturacion/historialFacturacion";
+import UsuariosTable from "../components/admin/negocio/usuariosTable";
+import RegistrarComputadora from "../components/admin/negocio/registrarComputadora";
 import DynamicInsertTable from "../components/common/dynamicInsertTable/dynamicInsertTable";
 
 export default () => (
@@ -29,6 +34,9 @@ export default () => (
         path="/default/home"
         render={props => <HomeDefault {...props} />}
       />
+      <Route path="/home" exact render={props => <Home {...props} />} />
+      <Route path="/pro" exact render={props => <RegistroPro {...props} />} />
+
       <Route
         path="/admin/home"
         exact
@@ -63,6 +71,17 @@ export default () => (
         path="/admin/historial-transacciones"
         exact
         render={props => <HistorialTransacciones {...props} />}
+      />
+
+      <Route
+        path="/admin/usuarios"
+        exact
+        render={props => <UsuariosTable {...props} />}
+      />
+      <Route
+        path="/admin/computadoras"
+        exact
+        render={props => <RegistrarComputadora {...props} />}
       />
       <Route
         path="/default/facturacion"

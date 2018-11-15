@@ -124,9 +124,12 @@ class ProductNamesTable extends Component {
         label="Nombre"
         type="text"
         autoComplete="false"
+        required
+        autoComplete="off"
         value={this.state.tempElement.nombre}
         onChange={this.handleName}
         fullWidth
+        inputProps={{ maxLength: 30 }}
       />
     );
   };
@@ -147,6 +150,8 @@ class ProductNamesTable extends Component {
         columns={1}
         onInsert={this.onInsert}
         onUpdate={this.onUpdate}
+        hasData={this.props.hasData}
+        messageHandler={this.props.messageHandler}
       />
     );
   }

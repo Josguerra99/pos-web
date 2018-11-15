@@ -17,6 +17,7 @@ import Theme from "../themes/defaulTheme";
 import Grid from "@material-ui/core/Grid";
 import Snackbar from "@material-ui/core/Snackbar";
 import history from "../common/history";
+import EveryOne from "../everyone/everyone";
 
 class SignIn extends Component {
   constructor() {
@@ -24,6 +25,7 @@ class SignIn extends Component {
     this.state = {
       user_name: "",
       pass: "",
+      nit: "",
       role: "None",
       nit_negocio: "None",
       authorized: false,
@@ -38,7 +40,7 @@ class SignIn extends Component {
   }
 
   /*
-   * INGRESAR CON EL USUARIO (O RECHARZAR) 
+   * INGRESAR CON EL USUARIO (O RECHARZAR)
    *
    * Hace un request al backend, y la respuesta de esto sera un json
    * que contiene informacion de la sesion creada, si es invalido
@@ -52,7 +54,8 @@ class SignIn extends Component {
     //Datos que enviare al backend
     const requestData = {
       user_name: this.state.user_name,
-      pass: this.state.pass
+      pass: this.state.pass,
+      nit_negocio: this.state.nit
     };
 
     //Realizar peticion post
@@ -93,13 +96,8 @@ class SignIn extends Component {
 
   ////*****************EVENTS */
   //Actualizar el nombre de usuario al escribir en el input
-  handleUserNameChange = e => {
-    this.setState({ user_name: e.target.value });
-  };
-
-  //Actualizar la contraseña al escribir en el input
-  handlePassChange = e => {
-    this.setState({ pass: e.target.value });
+  handleText = (state, val) => {
+    this.setState({ [state]: val });
   };
 
   //Abrir un mensaje en la esquina (puede servir cuando diga login incorrecto)
@@ -132,7 +130,7 @@ class SignIn extends Component {
     const { classes } = this.props;
     const { vertical, horizontal, open, message } = this.state.snack;
     return (
-      <React.Fragment>
+      <EveryOne>
         <Theme>
           <CssBaseline />
           <main className={classes.layout}>
@@ -145,14 +143,28 @@ class SignIn extends Component {
               </Typography>
               <form className={classes.form} onSubmit={this.tryToSign}>
                 <FormControl margin="normal" required fullWidth>
+                  <InputLabel htmlFor="nit">NIT</InputLabel>
+                  <Input
+                    id="nit"
+                    name="nit"
+                    autoComplete="nit"
+                    value={this.state.nit}
+                    onChange={e => {
+                      this.handleText("nit", e.target.value);
+                    }}
+                    autoFocus
+                  />
+                </FormControl>
+                <FormControl margin="normal" required fullWidth>
                   <InputLabel htmlFor="user">Usuario</InputLabel>
                   <Input
                     id="user"
                     name="user"
                     autoComplete="user"
                     value={this.state.user_name}
-                    onChange={this.handleUserNameChange}
-                    autoFocus
+                    onChange={e => {
+                      this.handleText("user_name", e.target.value);
+                    }}
                   />
                 </FormControl>
                 <FormControl margin="normal" required fullWidth>
@@ -161,9 +173,11 @@ class SignIn extends Component {
                     name="password"
                     type="password"
                     id="password"
-                    autoComplete="current-password"
                     value={this.state.pass}
                     onChange={this.handlePassChange}
+                    onChange={e => {
+                      this.handleText("pass", e.target.value);
+                    }}
                   />
                 </FormControl>
                 <Grid container justify="center">
@@ -189,14 +203,12 @@ class SignIn extends Component {
               anchorOrigin={{ vertical, horizontal }}
               open={open}
               onClose={this.handleCloseSnack}
-              ContentProps={{
-                "aria-describedby": "message-id"
-              }}
+              ContentProps={{ "aria-describedby": "message-id" }}
               message={<span id="message-id">{this.state.snack.message}</span>}
             />
           </main>
         </Theme>
-      </React.Fragment>
+      </EveryOne>
     );
   }
   ////*****************CREAR PAGINA */

@@ -14,6 +14,7 @@ import EditIcon from "@material-ui/icons/Edit";
 import TextField from "@material-ui/core/TextField";
 import Theme from "../../themes/defaulTheme";
 import Typography from "@material-ui/core/Typography";
+import Snackbar from "@material-ui/core/Snackbar";
 
 import AddEditDialog from "./addEditDialog";
 
@@ -31,11 +32,12 @@ class TableMngr extends Component {
     action: "ADD",
     selectedID: null,
     data: [],
-    hasData: false,
     tempElement: undefined,
     dialogIsOpen: false,
     dialogName: "producto",
-    dialogTitle: "Agregar producto"
+    dialogTitle: "Agregar producto",
+    message: "",
+    openSnack: false
   };
 
   constructor(props) {
@@ -43,12 +45,10 @@ class TableMngr extends Component {
     if (props.dialogName) this.state.dialogName = props.dialogName;
     this.state.elementStructure = props.elementStructure;
     this.state.tempElement = { ...this.state.elementStructure };
-    this.state.hasData = false;
     //Ver si los datos ya estan pasados
-    if (props.data !== null && props.data.length > 0) {
+    if (props.data !== null) {
       const data = this.mapData(this.props.data);
       this.state.data = data;
-      this.state.hasData = true;
     }
   }
 
@@ -57,10 +57,10 @@ class TableMngr extends Component {
       var data = [];
       if (this.props.data != null) {
         data = this.mapData(this.props.data);
+      } else {
+        data = null;
       }
       this.setState({ data });
-      if (data.length > 0) this.setState({ hasData: true });
-      else this.setState({ hasData: false });
     }
   }
 
@@ -86,6 +86,9 @@ class TableMngr extends Component {
         if (err === 0) {
           this.addElement();
         }
+        var message = "";
+        if (this.props.messageHandler) message = this.props.messageHandler(err);
+        this.setState({ openSnack: true, message });
       });
     } else {
       this.addElement();
@@ -109,12 +112,21 @@ class TableMngr extends Component {
   editElementCallback = () => {
     if (this.state.action != "EDIT") return;
 
+    var cmp = { ...this.props.data[this.props.tempElement.id] };
+    cmp.id = this.props.tempElement.id;
+    if (JSON.stringify(this.props.tempElement) === JSON.stringify(cmp)) {
+      this.handleDialogOpen(false);
+      return;
+    }
+
     if (this.props.onUpdate != null)
       this.props.onUpdate(err => {
         if (err === 0) {
           this.handleDialogOpen(false);
-          //this.editElement();
         }
+        var message = "";
+        if (this.props.messageHandler) message = this.props.messageHandler(err);
+        this.setState({ openSnack: true, message });
       });
     else {
       this.editElement();
@@ -191,6 +203,10 @@ class TableMngr extends Component {
     if (this.state.action === "DELETE") this.deleteElement();
   };
 
+  handleClose = () => {
+    this.setState({ openSnack: false });
+  };
+
   renderTableHead() {
     return (
       <TableRow>
@@ -263,16 +279,24 @@ class TableMngr extends Component {
           bodyMap={this.bodyMap}
           rows={this.state.data}
           columns={this.props.columns + 1}
-          loading={!this.state.hasData}
+          loading={!this.props.hasData}
         />
         <AddEditDialog
           title={this.state.dialogTitle}
           open={this.state.dialogIsOpen}
           handleOpen={this.handleDialogOpen}
           handleOk={this.handleDialogOk}
+          checkForm={this.props.checkForm}
         >
           {this.renderDialog()}
         </AddEditDialog>
+        <Snackbar
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          open={this.state.openSnack}
+          onClose={this.handleClose}
+          ContentProps={{ "aria-describedby": "message-id" }}
+          message={<span id="message-id">{this.state.message}</span>}
+        />
       </Theme>
     );
   }

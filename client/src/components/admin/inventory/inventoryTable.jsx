@@ -4,8 +4,13 @@ import Grid from "@material-ui/core/Grid";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import AutoComplete from "../../common/autocompleter";
-
 import TableMngr from "../../common/mngr/tableMngr";
+import FormControl from "@material-ui/core/FormControl";
+import Snackbar from "@material-ui/core/Snackbar";
+import FormHelperText from "@material-ui/core/FormHelperText";
+
+import MoneyFormat from "../../common/inputFormats/money";
+import IntegerFormat from "../../common/inputFormats/integer";
 
 class InventoryTable extends Component {
   state = {
@@ -20,6 +25,18 @@ class InventoryTable extends Component {
       stock: 0,
       precioActual: "",
       delete: false
+    },
+    snack: {
+      open: false,
+      vertical: "bottom",
+      horizontal: "right",
+      message: ""
+    },
+    errors: {
+      marca: false,
+      nombre: false,
+      descripcion: false,
+      presentacion: false
     }
   };
 
@@ -134,6 +151,49 @@ class InventoryTable extends Component {
     if (result.length > 0) return result[0][column];
   }
 
+  checkForm = () => {
+    var errors = { ...this.state.errors };
+    if (
+      this.state.tempElement.marca === null ||
+      JSON.stringify(this.state.tempElement.marca) === "[]"
+    ) {
+      errors.marca = true;
+      this.setState({ errors });
+      this.handleOpenSnack("Ingresa una marca");
+      return false;
+    }
+
+    if (
+      this.state.tempElement.nombre === null ||
+      JSON.stringify(this.state.tempElement.nombre) === "[]"
+    ) {
+      errors.nombre = true;
+      this.setState({ errors });
+      this.handleOpenSnack("Ingresa una nombre");
+      return false;
+    }
+    if (
+      this.state.tempElement.descripcion === null ||
+      JSON.stringify(this.state.tempElement.descripcion) === "[]"
+    ) {
+      errors.descripcion = true;
+      this.setState({ errors });
+      this.handleOpenSnack("Ingresa una descripcion");
+      return false;
+    }
+    if (
+      this.state.tempElement.presentacion === null ||
+      JSON.stringify(this.state.tempElement.presentacion) === "[]"
+    ) {
+      errors.presentacion = true;
+      this.setState({ errors });
+      this.handleOpenSnack("Ingresa una presentacion");
+      return false;
+    }
+
+    return true;
+  };
+
   /**
    * Renderizar header de la tabla
    */
@@ -156,6 +216,9 @@ class InventoryTable extends Component {
    * Renderizar fila de la tabla
    */
   renderTableRow = row => {
+    var precioActual = "";
+    if (row.precioActual && row.precioActual.toFixed)
+      precioActual = row.precioActual.toFixed(2);
     return (
       <React.Fragment>
         <TableCell>{row.codigo}</TableCell>
@@ -165,7 +228,7 @@ class InventoryTable extends Component {
         <TableCell>{row.presentacion.label}</TableCell>
         <TableCell>{row.unidades}</TableCell>
         <TableCell>{row.stock}</TableCell>
-        <TableCell>{"Q." + row.precioActual}</TableCell>
+        <TableCell>{"Q." + precioActual}</TableCell>
       </React.Fragment>
     );
   };
@@ -181,6 +244,30 @@ class InventoryTable extends Component {
     );
   };
 
+  //Abrir mensaje
+  handleOpenSnack = message => {
+    this.setState({
+      snack: {
+        open: true,
+        vertical: "bottom",
+        horizontal: "right",
+        message: message
+      }
+    });
+  };
+
+  //Cerrar el mensaje
+  handleCloseSnack = () => {
+    this.setState({
+      snack: {
+        open: false,
+        vertical: "bottom",
+        horizontal: "right",
+        message: ""
+      }
+    });
+  };
+
   /**
    * Rendizar formulario de agregar o editar
    */
@@ -190,13 +277,16 @@ class InventoryTable extends Component {
         <Grid container style={{ padding: 10 }}>
           <TextField
             autoFocus
+            required
             margin="dense"
             id="name"
             label="Codigo"
             autoComplete="false"
             value={this.state.tempElement.codigo}
             onChange={this.handleCodigo}
+            autoComplete="off"
             fullWidth
+            inputProps={{ maxLength: 30 }}
           />
         </Grid>
 
@@ -204,6 +294,7 @@ class InventoryTable extends Component {
           <Grid item xs={6} style={{ padding: 10 }}>
             <AutoComplete
               name="Marca"
+              required
               placeholder="Elija la marca"
               value={this.state.tempElement.marca}
               onChange={this.handleMarcaChange}
@@ -214,11 +305,15 @@ class InventoryTable extends Component {
                 return element;
               })}
             />
+            {this.state.errors.marca && (
+              <FormHelperText>Campo requerido!</FormHelperText>
+            )}
           </Grid>
           <Grid item xs={6} style={{ padding: 10 }}>
             <AutoComplete
               name="Nombre"
               placeholder="Elija el nombre"
+              required
               value={this.state.tempElement.nombre}
               onChange={this.handleNombreChange}
               suggestions={this.props.datosNombre.map(el => {
@@ -228,11 +323,15 @@ class InventoryTable extends Component {
                 return element;
               })}
             />
+            {this.state.errors.nombre && (
+              <FormHelperText>Campo requerido!</FormHelperText>
+            )}
           </Grid>
         </Grid>
         <Grid item xs={12} style={{ padding: 10 }}>
           <AutoComplete
             name="Descripción"
+            required
             placeholder="Elija la descripción"
             onChange={this.handleDescripcionChange}
             value={this.state.tempElement.descripcion}
@@ -243,12 +342,16 @@ class InventoryTable extends Component {
               return element;
             })}
           />
+          {this.state.errors.descripcion && (
+            <FormHelperText>Campo requerido!</FormHelperText>
+          )}
         </Grid>
         <Grid container>
           <Grid item xs={8} style={{ padding: 10 }}>
             <AutoComplete
               value={this.state.tempElement.presentacion}
               name="Presentación"
+              required
               placeholder="Elija la presentación"
               onChange={this.handlePresentacionChange}
               suggestions={this.props.datosPresentacion.map(el => {
@@ -258,6 +361,11 @@ class InventoryTable extends Component {
                 return element;
               })}
             />
+            {this.state.errors.presentacion && (
+              <FormHelperText style={{ fontColor: "" }}>
+                Campo requerido!
+              </FormHelperText>
+            )}
           </Grid>
           <Grid item xs={4} style={{ padding: 10 }}>
             <TextField
@@ -265,8 +373,12 @@ class InventoryTable extends Component {
               id="name"
               label="Unidades"
               autoComplete="false"
+              required
+              type="numeric"
               value={this.state.tempElement.unidades}
               onChange={this.handleUnidades}
+              autoComplete="off"
+              InputProps={{ inputComponent: IntegerFormat }}
               fullWidth
             />
           </Grid>
@@ -277,10 +389,13 @@ class InventoryTable extends Component {
             margin="dense"
             id="name"
             label="Precio"
+            required
             autoComplete="false"
             value={this.state.tempElement.precioActual}
             onChange={this.handlePrecio}
             fullWidth
+            InputProps={{ inputComponent: MoneyFormat }}
+            autoComplete="off"
           />
         </Grid>
       </React.Fragment>
@@ -289,20 +404,32 @@ class InventoryTable extends Component {
 
   render() {
     return (
-      <TableMngr
-        elementStructure={this.state.elementStructure}
-        data={this.state.data}
-        renderRow={this.renderTableRow}
-        renderHead={this.renderTableHead}
-        renderDeleteMessage={this.deleteMessage}
-        renderDialogForm={this.dialogForm}
-        syncData={this.syncMemoryData}
-        syncTemp={this.syncTemp}
-        tempElement={this.state.tempElement}
-        columns={8}
-        onInsert={this.onInsert}
-        onUpdate={this.onUpdate}
-      />
+      <React.Fragment>
+        <TableMngr
+          elementStructure={this.state.elementStructure}
+          data={this.state.data}
+          renderRow={this.renderTableRow}
+          renderHead={this.renderTableHead}
+          renderDeleteMessage={this.deleteMessage}
+          renderDialogForm={this.dialogForm}
+          syncData={this.syncMemoryData}
+          syncTemp={this.syncTemp}
+          tempElement={this.state.tempElement}
+          columns={8}
+          onInsert={this.onInsert}
+          onUpdate={this.onUpdate}
+          hasData={this.props.hasData}
+          messageHandler={this.props.messageHandler}
+          checkForm={this.checkForm}
+        />
+        <Snackbar
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          open={this.state.snack.open}
+          onClose={this.handleCloseSnack}
+          ContentProps={{ "aria-describedby": "message-id" }}
+          message={<span id="message-id">{this.state.snack.message}</span>}
+        />
+      </React.Fragment>
     );
   }
 }

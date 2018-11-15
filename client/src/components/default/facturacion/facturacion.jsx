@@ -25,6 +25,17 @@ import Snackbar from "@material-ui/core/Snackbar";
 
 import ReportMngr from "../../common/reporter/reportMngr";
 
+import MoneyFormat from "../../common/inputFormats/money";
+import IntegerFormat from "../../common/inputFormats/integer";
+
+import BottomNavigation from "@material-ui/core/BottomNavigation";
+import BottomNavigationAction from "@material-ui/core/BottomNavigationAction";
+
+import SaveIcon from "@material-ui/icons/Save";
+import FinishIcon from "@material-ui/icons/SkipNext";
+
+var bigDecimal = require("js-big-decimal");
+
 const styles = theme => ({
   card: {
     // display: "flex"
@@ -113,24 +124,52 @@ class Facturacion extends Component {
     sendingData: false,
     open: false,
     message: "",
-    printURL: null
+    printURL: null,
+    resolucion: {
+      hasIt: false,
+      res: null
+    }
   };
 
   constructor(props) {
     super(props);
     this.firstInput = React.createRef();
     this.nitInput = React.createRef();
-
+    this.end = React.createRef();
     this.scrollToBottom = this.scrollToBottom.bind(this);
+    //this.bringResolucion();
   }
 
+  bringResolucion() {
+    //Realizar peticion get
+    fetch("/api/resolucion_activa?doc=FAC")
+      .then(res => res.json())
+      .then(data => {
+        var res = null;
+
+        if (data.length > 0) {
+          res = data[0];
+          if (res["@err"] != undefined && res["@err"] === -1) {
+            res = null;
+          }
+        }
+        this.setState({ resolucion: { hasIt: true, res: res } });
+      });
+  }
   componentDidMount() {
     this.bringProductos();
+    this.bringResolucion();
   }
 
+  componentDidUpdate() {
+    this.scrollToBottom();
+  }
   componentWillUnmount() {}
 
-  scrollToBottom() {}
+  scrollToBottom = () => {
+    if (this.end == undefined || this.end.scrollIntoView == undefined) return;
+    this.end.scrollIntoView({ behavior: "instant" });
+  };
 
   clear() {
     this.setState({ tempData: { ...this.state.elementStructure } });
@@ -195,6 +234,7 @@ class Facturacion extends Component {
 
   addFactura = (factura, callback) => {
     this.setState({ sendingData: true });
+    this.bringResolucion();
     const requestData = {
       total: factura.total,
       cliente: factura.cliente,
@@ -219,6 +259,7 @@ class Facturacion extends Component {
             const reportmngr = new ReportMngr();
             reportmngr.openReport(
               "factura?ntransaccion=" + data["ntransaccion"],
+              [],
               fireURL => {
                 window.open(fireURL).print();
               }
@@ -233,6 +274,10 @@ class Facturacion extends Component {
   };
 
   crearFactura() {
+    if (!this.checkFactura()) {
+      return;
+    }
+
     var factura = {};
     factura.total = this.state.total;
     factura.cliente = { ...this.state.cliente };
@@ -275,6 +320,70 @@ class Facturacion extends Component {
     this.setState({ cliente });
   };
 
+  checkFactura = () => {
+    if (this.state.resolucion.res === null) {
+      this.handleSnackOpen("No hay ninguna resolución vigente");
+      return false;
+    }
+    if (this.state.cliente.nit == undefined || this.state.cliente.nit === "") {
+      this.handleSnackOpen("Agrega el NIT del cliente");
+      return false;
+    }
+
+    if (
+      this.state.cliente.nombre == undefined ||
+      this.state.cliente.nombre === ""
+    ) {
+      this.handleSnackOpen("Agrega el nombre del cliente");
+      return false;
+    }
+
+    if (
+      this.state.cliente.direccion == undefined ||
+      this.state.cliente.direccion === ""
+    ) {
+      this.handleSnackOpen("Agrega la dirección del cliente");
+      return false;
+    }
+
+    if (this.state.data == undefined || this.state.data.length <= 0) {
+      this.handleSnackOpen("No hay productos ingresados");
+      return false;
+    }
+
+    return true;
+  };
+
+  checkBeforeAdd = () => {
+    if (!this.state.tempData.codigo || this.state.tempData.codigo === "") {
+      this.handleSnackOpen("Ingresa un código de producto");
+      return false;
+    }
+
+    if (!this.state.tempData.producto || this.state.tempData.producto === "") {
+      this.handleSnackOpen("Código de producto ingresado no es válido");
+      return false;
+    }
+
+    if (
+      this.state.tempData.cantidad == undefined ||
+      this.state.tempData.cantidad === ""
+    ) {
+      this.handleSnackOpen("Ingresa una cantidad");
+      return false;
+    }
+
+    if (
+      this.state.tempData.cantidad == undefined ||
+      this.state.tempData.cantidad <= 0
+    ) {
+      this.handleSnackOpen("Cantidad tiene que ser mayor a 0");
+      return false;
+    }
+
+    return true;
+  };
+
   handleClienteBlur = e => {
     var v = e.target.value;
     if (
@@ -282,7 +391,6 @@ class Facturacion extends Component {
       v === "CF" ||
       v === "." ||
       v === " " ||
-      v === "" ||
       v === "C.F." ||
       v === "c.f." ||
       v === "c.f" ||
@@ -317,10 +425,17 @@ class Facturacion extends Component {
     if (producto != null) {
       tempData.producto = producto.producto;
       tempData.precioUnitario = producto.precioActual;
-      tempData.precio = producto.precioActual * tempData.cantidad;
+      var n1 = new bigDecimal(tempData.precioUnitario);
+      var n2 = new bigDecimal(tempData.cantidad);
+      tempData.precio = parseFloat(n1.multiply(n2).getValue());
     }
 
     this.setState({ tempData });
+  };
+
+  handleSnackOpen = message => {
+    this.setState({ message });
+    this.setState({ open: true });
   };
 
   syncData = data => {
@@ -379,6 +494,7 @@ class Facturacion extends Component {
             value={tempData.codigo}
             onChange={e => this.handleDataChange(e, "codigo")}
             onBlur={e => this.handleDataBlur(e, "codigo")}
+            inputProps={{ maxLength: 30 }}
           />
         </TableCell>
         <TableCell className={classes.insertCell}>
@@ -388,10 +504,12 @@ class Facturacion extends Component {
           <TextField
             id="cantidad"
             label="Cantidad"
+            type="numeric"
             className={classes.textField}
             value={tempData.cantidad}
             onChange={e => this.handleDataChange(e, "cantidad")}
             onBlur={e => this.handleDataBlur(e, "cantidad")}
+            InputProps={{ inputComponent: IntegerFormat }}
           />
         </TableCell>
 
@@ -425,6 +543,7 @@ class Facturacion extends Component {
                     }}
                     onBlur={this.handleClienteBlur}
                     style={{ margin: "10px" }}
+                    inputProps={{ maxLength: 10 }}
                   />
                   <TextField
                     id="cliente"
@@ -435,6 +554,7 @@ class Facturacion extends Component {
                     }}
                     style={{ margin: "10px" }}
                     disabled={this.state.clienteExiste}
+                    inputProps={{ maxLength: 255 }}
                   />
                   <TextField
                     id="direccion"
@@ -445,6 +565,7 @@ class Facturacion extends Component {
                     }}
                     style={{ margin: "10px" }}
                     disabled={this.state.clienteExiste}
+                    inputProps={{ maxLength: 255 }}
                   />
                 </Form>
               </CardContent>
@@ -460,85 +581,43 @@ class Facturacion extends Component {
           elementStructure={this.state.elementStructure}
           firstInput={this.firstInput}
           data={this.state.data}
+          checkBeforeAdd={this.checkBeforeAdd}
           syncData={this.syncData}
           syncTempData={this.syncTempData}
         />
 
-        <Grid container style={{ paddingTop: "20px" }}>
-          <Grid item xs={12}>
-            <Card className={classes.card}>
-              <CardContent className={classes.content}>
-                <Grid container>
-                  <Grid item xs={4}>
-                    <Grid container>
-                      <Grid item xs={3}>
-                        <Avatar className={classes.moneyAvatar}>
-                          <MoneyIcon className={classes.moneyIcon} />
-                        </Avatar>
-                      </Grid>
-
-                      <Grid item xs={6} className={classes.text}>
-                        <Typography
-                          color="textSecondary"
-                          component="h6"
-                          variant="h6"
-                          gutterBottom
-                        >
-                          Total
-                        </Typography>
-                        <Typography component="h5" variant="h5" gutterBottom>
-                          {"Q." + this.state.total.toFixed(2)}
-                        </Typography>
-                      </Grid>
-                    </Grid>
-                  </Grid>
-
-                  <Grid item xs={4}>
-                    <Grid container>
-                      <Grid item xs={3}>
-                        <Avatar className={classes.productsAvatar}>
-                          <ProductsIcon className={classes.productIcon} />
-                        </Avatar>
-                      </Grid>
-
-                      <Grid item xs={6} className={classes.text}>
-                        <Typography
-                          color="textSecondary"
-                          component="h6"
-                          variant="h6"
-                          gutterBottom
-                        >
-                          Articulos
-                        </Typography>
-                        <Typography component="h5" variant="h5" gutterBottom>
-                          {this.state.cantidad}
-                        </Typography>
-                      </Grid>
-                    </Grid>
-                  </Grid>
-
-                  <Grid item xs={4} className={classes.button}>
-                    <Grid container>
-                      <Grid item xs={3} />
-                      <Grid item xs={3}>
-                        <Button
-                          variant="extendedFab"
-                          aria-label="Delete"
-                          className={classes.button1}
-                          onClick={() => this.crearFactura()}
-                          disabled={this.state.sendingData}
-                        >
-                          <NavigationIcon className={classes.extendedIcon} />
-                          Terminar
-                        </Button>
-                      </Grid>
-                    </Grid>
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+        <BottomNavigation style={{ width: "100%", marginTop: 30 }} showLabels>
+          <BottomNavigationAction
+            disabled
+            label={"Q." + this.state.total.toFixed(2)}
+            icon={<MoneyIcon />}
+          />
+          <BottomNavigationAction
+            disabled
+            label={this.state.cantidad}
+            icon={<ProductsIcon />}
+          />
+          <BottomNavigationAction
+            label="Guardar"
+            disabled //style={{ color: "#0277bd" }}
+            icon={<SaveIcon />}
+            onClick={() => {
+              this.crearFactura(true);
+            }}
+          />
+          <BottomNavigationAction
+            label="Terminar"
+            icon={<FinishIcon />}
+            onClick={() => this.crearFactura(false)}
+            style={{ color: "#0277bd" }}
+          />
+        </BottomNavigation>
+        <div
+          style={{ float: "left", clear: "both" }}
+          ref={el => {
+            this.end = el;
+          }}
+        />
         <Snackbar
           anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
           open={this.state.open}

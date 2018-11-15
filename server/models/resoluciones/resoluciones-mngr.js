@@ -1,12 +1,12 @@
-const con = require("../database/db-con");
-const FilterMngr = require("./filters-mngr");
+const con = require("../../database/db-con");
+const FilterMngr = require("../filters-mngr");
 
 let resolucionMngr = {};
 
 resolucionMngr.getResolucionReplace = (doc, nit_negocio, callback) => {
   if (con) {
     con.query(
-      "SELECT Num, Actual, Fin FROM Resolucion WHERE Documento=? AND nit_negocio=? AND Activo=TRUE AND Actual<Fin ",
+      "SELECT Num, Actual, Fin FROM Resolucion WHERE Documento=? AND nit_negocio=? AND Activo=TRUE AND Actual<Fin AND  DATE(NOW()) < DATE_ADD(fechaIngreso, INTERVAL 2 YEAR)",
       [doc, nit_negocio],
       (err, rows) => {
         if (err) {
@@ -48,7 +48,7 @@ resolucionMngr.addResolucion = (
 resolucionMngr.getActiva = (doc, nit_negocio, callback) => {
   if (con) {
     con.query(
-      "SELECT Num, Serie,Inicio,Fin,Actual,Fecha,Activo FROM Resolucion WHERE Documento=? AND nit_negocio=? AND Activo=TRUE ",
+      "SELECT Num, Serie,Inicio,Fin,Actual,Fecha,Activo FROM Resolucion WHERE Documento=? AND nit_negocio=? AND Activo=TRUE AND  DATE(NOW()) < DATE_ADD(fechaIngreso, INTERVAL 2 YEAR)  AND Actual<Fin  ",
       [doc, nit_negocio],
       (err, rows) => {
         if (err) {
@@ -65,7 +65,7 @@ resolucionMngr.getResoluciones = (nit_negocio, filters, callback) => {
   if (con) {
     const whereQuery = FilterMngr.createFilter(filters);
     con.query(
-      "SELECT Num, Serie,Inicio,Fin,Actual,Fecha,Documento FROM Resolucion WHERE  nit_negocio=? AND " +
+      "SELECT Num, Serie,Inicio,Fin,Actual,Fecha,Documento, Activo FROM Resolucion WHERE  nit_negocio=? AND " +
         whereQuery,
       [nit_negocio],
       (err, rows) => {

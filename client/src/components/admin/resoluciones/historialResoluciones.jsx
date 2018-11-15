@@ -1,8 +1,8 @@
 import React, { Component } from "react";
-import AdminDashboard from "./adminDashboard";
+import AdminDashboard from "../adminDashboard";
 import PropTypes from "prop-types";
 import { withStyles } from "@material-ui/core/styles";
-import PaginationTable from "../common/paginationTable";
+import PaginationTable from "../../common/paginationTable";
 import TableRow from "@material-ui/core/TableRow";
 
 import formatDate from "date-fns/format";
@@ -11,17 +11,18 @@ import Grid from "@material-ui/core/Grid";
 import IconButton from "@material-ui/core/IconButton";
 import DownloadIcon from "@material-ui/icons/GetApp";
 import PrintIcon from "@material-ui/icons/Print";
+import ReportMngr from "../../common/reporter/reportMngr";
+import Filters from "../../common/filters";
+import FilterNumberRange from "../../common/filterOptions/filterNumberRange";
+import FilterSearch from "../../common/filterOptions/filterSearch";
+import FilterSelect from "../../common/filterOptions/filterSelect";
+import CheckIcon from "@material-ui/icons/Check";
+import WrongIcon from "@material-ui/icons/Close";
 
-import ReportMngr from "../common/reporter/reportMngr";
-
-import Filters from "../common/filters";
-import FilterNumberRange from "../common/filterOptions/filterNumberRange";
-import FilterSearch from "../common/filterOptions/filterSearch";
-import FilterSelect from "../common/filterOptions/filterSelect";
 import { th } from "date-fns/esm/locale";
 import nextFrame from "next-frame";
 
-const reportmngr = new ReportMngr();
+var reportmngr = new ReportMngr();
 
 const select = [
   { id: "FAC", name: "Factura" },
@@ -86,9 +87,6 @@ class HistorialResoluciones extends Component {
 
   componentDidMount() {
     this.bringResolucion();
-    reportmngr.openReport("historialResoluciones", fireURL => {
-      this.setState({ printURL: fireURL });
-    });
   }
 
   async beforeFilters() {
@@ -119,6 +117,7 @@ class HistorialResoluciones extends Component {
   async bringResolucion(filters = []) {
     // this.setState({ hasData: false });
     // this.setState({ data: [] });
+    this.setState({ printURL: null });
     const request = { filters: filters };
 
     return fetch("/api/getResoluciones", {
@@ -130,6 +129,7 @@ class HistorialResoluciones extends Component {
     })
       .then(res => res.json())
       .then(data => {
+        this.getReport(data);
         if (data.length > 0) {
           this.setState({
             data: data.map((el, index) => {
@@ -145,13 +145,25 @@ class HistorialResoluciones extends Component {
                 Serie: el.Serie,
                 Documento: documento,
                 Rango: rango,
-                Fecha: fecha
+                Fecha: fecha,
+                Activa: el.Activo
               };
             })
           });
         }
         this.setState({ hasData: true });
       });
+  }
+
+  /**
+   * Obtiene el reporte reseteandolo para crearlo de nuevo
+   * @param {JSON} data datos que se le pasaran al backend para que cree el reporte
+   */
+  getReport(data) {
+    reportmngr.reset();
+    reportmngr.openReport("historialResoluciones", data, fireURL => {
+      this.setState({ printURL: fireURL });
+    });
   }
 
   /*
@@ -165,8 +177,14 @@ class HistorialResoluciones extends Component {
         <TableCell>Documento</TableCell>
         <TableCell>Rango</TableCell>
         <TableCell>Fecha</TableCell>
+        <TableCell>Actual</TableCell>
       </TableRow>
     );
+  }
+
+  renderBoolIcon(val) {
+    if (val) return <CheckIcon style={{ fontSize: 20, color: "#0091ea" }} />;
+    else return <WrongIcon style={{ fontSize: 20, color: "#90a4ae" }} />;
   }
 
   /**
@@ -177,7 +195,7 @@ class HistorialResoluciones extends Component {
    * map, lo que hace es crear la fila actual con los datos de
    * rows (que son la informacion que trajimos y mapeamos anteriormente)
    */
-  bodyMap(row) {
+  bodyMap = row => {
     return (
       <TableRow key={row.id}>
         <TableCell>{row.Num}</TableCell>
@@ -185,9 +203,10 @@ class HistorialResoluciones extends Component {
         <TableCell>{row.Documento}</TableCell>
         <TableCell>{row.Rango}</TableCell>
         <TableCell>{row.Fecha}</TableCell>
+        <TableCell>{this.renderBoolIcon(row.Activa)}</TableCell>
       </TableRow>
     );
-  }
+  };
 
   /**
    * Renderiza la pagina, pimero el dashboard luego filtros
@@ -275,7 +294,7 @@ class HistorialResoluciones extends Component {
           tableHead={this.renderTableHead()}
           bodyMap={this.bodyMap}
           rows={this.state.data}
-          columns={5}
+          columns={6}
           loading={!this.state.hasData}
         />
       </AdminDashboard>

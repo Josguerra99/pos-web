@@ -126,10 +126,13 @@ class ProductDescriptionTable extends Component {
         id="name"
         label="Nombre"
         type="text"
+        required
+        autoComplete="off"
         autoComplete="false"
         value={this.state.tempElement.descripcion}
         onChange={this.handleName}
         fullWidth
+        inputProps={{ maxLength: 30 }}
       />
     );
   };
@@ -149,6 +152,8 @@ class ProductDescriptionTable extends Component {
         dialogName="descripción"
         onInsert={this.onInsert}
         onUpdate={this.onUpdate}
+        hasData={this.props.hasData}
+        messageHandler={this.props.messageHandler}
         columns={1}
       />
     );

@@ -92,6 +92,7 @@ class IntRange extends Component {
                 onBlur={this.checkStartValue}
                 step="1"
                 min="0"
+                inputProps={{ min: 0, max: 999999999 }}
               />
             </FormControl>
           </Grid>
@@ -107,6 +108,7 @@ class IntRange extends Component {
                 onBlur={this.checkEndValue}
                 step="1"
                 min="0"
+                inputProps={{ min: 0, max: 999999999 }}
               />
             </FormControl>
           </Grid>

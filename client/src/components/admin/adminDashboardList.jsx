@@ -21,6 +21,10 @@ import ShopInventoryIcon from "@material-ui/icons/AddShoppingCart";
 
 import TransaccionIcon from "@material-ui/icons/Loop";
 
+import NegocioIcon from "@material-ui/icons/BusinessCenter";
+import UsuarioIcon from "@material-ui/icons/PersonAdd";
+import ComputadoraIcon from "@material-ui/icons/Computer";
+
 import ExpandLess from "@material-ui/icons/ExpandLess";
 import ExpandMore from "@material-ui/icons/ExpandMore";
 import FacturasIcon from "@material-ui/icons/Assignment";
@@ -42,7 +46,8 @@ class NestedList extends React.Component {
   state = {
     openResolucion: false,
     openInventory: false,
-    openTransaccion: false
+    openTransaccion: false,
+    openNegocio: false
   };
 
   handleClick = name => {
@@ -163,6 +168,38 @@ class NestedList extends React.Component {
                 <FacturasIcon />
               </ListItemIcon>
               <ListItemText inset primary="Facturas" />
+            </ListItem>
+          </List>
+        </Collapse>
+
+        <ListItem button onClick={() => this.handleClick("openNegocio")}>
+          <ListItemIcon>
+            <NegocioIcon />
+          </ListItemIcon>
+          <ListItemText inset primary="Negocio" />
+          {this.state.openNegocio ? <ExpandLess /> : <ExpandMore />}
+        </ListItem>
+        <Collapse in={this.state.openNegocio} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            <ListItem
+              button
+              className={classes.nested}
+              onClick={() => history.push("/admin/usuarios")}
+            >
+              <ListItemIcon>
+                <UsuarioIcon />
+              </ListItemIcon>
+              <ListItemText inset primary="Usuarios" />
+            </ListItem>
+            <ListItem
+              button
+              className={classes.nested}
+              onClick={() => history.push("/admin/computadoras")}
+            >
+              <ListItemIcon>
+                <ComputadoraIcon />
+              </ListItemIcon>
+              <ListItemText inset primary="Computadoras" />
             </ListItem>
           </List>
         </Collapse>

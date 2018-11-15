@@ -5,13 +5,9 @@ import DynamicTable from "../../common/dynamicInsertTable/dynamicInsertTable";
 import AdminDashboard from "../adminDashboard";
 import TableCell from "@material-ui/core/TableCell";
 import TextField from "@material-ui/core/TextField";
-import filterItem from "../../common/filterOptions/filterItem";
-import Paper from "@material-ui/core/Paper";
 import Card from "@material-ui/core/Card";
-import CardActions from "@material-ui/core/CardActions";
 import CardContent from "@material-ui/core/CardContent";
 import Grid from "@material-ui/core/Grid";
-import Typography from "@material-ui/core/Typography";
 import Form from "@material-ui/core/FormGroup";
 import { th } from "date-fns/esm/locale";
 
@@ -19,9 +15,17 @@ import Avatar from "@material-ui/core/Avatar";
 import MoneyIcon from "@material-ui/icons/AttachMoneyRounded";
 import ProductsIcon from "@material-ui/icons/ShoppingCartRounded";
 import Button from "@material-ui/core/Button";
-import NavigationIcon from "@material-ui/icons/Save";
+import SaveIcon from "@material-ui/icons/Save";
+import FinishIcon from "@material-ui/icons/SkipNext";
 
 import Snackbar from "@material-ui/core/Snackbar";
+import MoneyFormat from "../../common/inputFormats/money";
+import IntegerFormat from "../../common/inputFormats/integer";
+
+import BottomNavigation from "@material-ui/core/BottomNavigation";
+import BottomNavigationAction from "@material-ui/core/BottomNavigationAction";
+
+var bigDecimal = require("js-big-decimal");
 
 const styles = theme => ({
   card: {
@@ -37,7 +41,7 @@ const styles = theme => ({
     flexDirection: "column"
   },
   content: {
-    //flex: "1 0 auto"
+    display: "flex",
     padding: 20,
     marginBottom: 10
   },
@@ -51,21 +55,21 @@ const styles = theme => ({
     paddingBottom: theme.spacing.unit
   },
   moneyIcon: {
-    fontSize: 40
+    fontSize: 25
   },
   productIcon: {
-    fontSize: 35
+    fontSize: 20
   },
   moneyAvatar: {
     margin: 10,
-    padding: 30,
+    padding: 10,
     color: "#fff",
     backgroundColor: "#FF8F00"
   },
 
   productsAvatar: {
     margin: 10,
-    padding: 30,
+    padding: 10,
     color: "#fff",
     backgroundColor: "#00695f"
   },
@@ -118,27 +122,97 @@ class Compras extends Component {
     super(props);
     this.firstInput = React.createRef();
     this.nitInput = React.createRef();
+    this.end = React.createRef();
 
     this.scrollToBottom = this.scrollToBottom.bind(this);
   }
 
   componentDidMount() {
     this.bringProductos();
+    this.bringCompraParcial();
+  }
+
+  componentDidUpdate() {
+    this.scrollToBottom();
   }
 
   componentWillUnmount() {}
-
-  scrollToBottom() {}
+  scrollToBottom = () => {
+    if (this.end == undefined || this.end.scrollIntoView == undefined) return;
+    this.end.scrollIntoView({ behavior: "instant" });
+  };
 
   clear() {
     this.setState({ tempData: { ...this.state.elementStructure } });
     this.setState({ data: [] });
     this.setState({ cliente: { nit: "", nombre: "", direccion: "" } });
+    this.setState({ montoTotal: 0 });
     this.setState({ cantidad: 0 });
     this.setState({ total: 0 });
     this.setState({ clienteExiste: false });
     this.nitInput.current.focus();
   }
+
+  checkCompra = () => {
+    if (this.state.montoTotal == undefined || this.state.montoTotal === "") {
+      this.handleSnackOpen("Agrega un monto");
+      return false;
+    }
+
+    if (this.state.data == undefined || this.state.data.length <= 0) {
+      this.handleSnackOpen("No hay productos ingresados");
+      return false;
+    }
+
+    return true;
+  };
+
+  checkBeforeAdd = () => {
+    if (!this.state.tempData.codigo || this.state.tempData.codigo === "") {
+      this.handleSnackOpen("Ingresa un código de producto");
+      return false;
+    }
+
+    if (!this.state.tempData.producto || this.state.tempData.producto === "") {
+      this.handleSnackOpen("Código de producto ingresado no es válido");
+      return false;
+    }
+
+    if (
+      this.state.tempData.cantidad == undefined ||
+      this.state.tempData.cantidad === ""
+    ) {
+      this.handleSnackOpen("Ingresa una cantidad");
+      return false;
+    }
+
+    if (
+      this.state.tempData.precioUnitario == undefined ||
+      this.state.tempData.precioUnitario === ""
+    ) {
+      this.handleSnackOpen("Ingresa un precio");
+      return false;
+    }
+
+    if (
+      this.state.tempData.cantidad == undefined ||
+      this.state.tempData.cantidad <= 0
+    ) {
+      this.handleSnackOpen("Cantidad tiene que ser mayor a 0");
+      return false;
+    }
+
+    if (
+      this.state.tempData.precioUnitario == undefined ||
+      this.state.tempData.precioUnitario < 0
+    ) {
+      this.handleSnackOpen("Precio no puede ser negativo");
+      return false;
+    }
+
+    return true;
+  };
+
   /**
    * Traer los productos para hacer el ingreso mas rapido
    */
@@ -157,10 +231,49 @@ class Compras extends Component {
       });
   }
 
-  getProducto(codigo) {
+  bringCompraParcial = () => {
+    //Realizar peticion get
+    return fetch("/api/getCompraParcial")
+      .then(res => res.json())
+      .then(data => {
+        //alert(JSON.stringify(data));
+        this.setCompraParcialValues(data);
+      });
+  };
+
+  setCompraParcialValues = data => {
+    if (data.length <= 0) {
+      return;
+    }
+
+    this.setState({ montoTotal: data.compra.monto });
+
+    var dataCompra = [];
+    var total = 0;
+    var cantidad = 0;
+    data.detalle.forEach((el, id) => {
+      var d = {};
+      d.id = id;
+      d.codigo = this.getProducto(el.idProducto, "id").codigo;
+      d.cantidad = el.cantidad;
+      d.precioUnitario = el.precioUnitarioCompra;
+      const producto = this.getProducto(d.codigo);
+      d.producto = producto.producto;
+      var n1 = new bigDecimal(d.precioUnitario);
+      var n2 = new bigDecimal(d.cantidad);
+      d.precio = parseFloat(n1.multiply(n2).getValue());
+      total += d.precio;
+      cantidad += d.cantidad;
+      dataCompra.push(d);
+    });
+    this.setState({ total, cantidad });
+    this.setState({ data: dataCompra });
+  };
+
+  getProducto(codigo, columnName = "codigo") {
     const { productos } = this.state;
     let producto = productos.filter(el => {
-      return el.codigo === codigo;
+      return el[columnName] === codigo;
     });
 
     if (producto != null && producto.length > 0) producto = producto[0];
@@ -172,7 +285,8 @@ class Compras extends Component {
     this.setState({ sendingData: true });
     const requestData = {
       total: factura.total,
-      detalle: factura.detalle
+      detalle: factura.detalle,
+      parcial: factura.parcial
     };
     fetch("/api/addCompra", {
       method: "POST",
@@ -187,21 +301,37 @@ class Compras extends Component {
         var err = parseInt(data["@err"]);
         this.setState({ sendingData: false });
         if (err === 0) {
-          this.clear();
-          this.setState({ message: "Venta realizada exitosamente" });
-          this.setState({ open: true });
+          if (!factura.parcial) this.clear();
+          this.handleSnackOpen(
+            factura.parcial
+              ? "Compra guardada"
+              : "Compra realizada exitosamente"
+          );
         } else {
-          this.setState({ message: "Error al intentar realizar la venta" });
-          this.setState({ open: true });
+          this.handleSnackOpen(
+            factura.parcial
+              ? "Error al guardar la compra"
+              : "Error al intentar realizar la compra"
+          );
         }
         //   callback(parseInt(err));
       });
   };
 
-  crearCompra() {
+  handleSnackOpen = message => {
+    this.setState({ message });
+    this.setState({ open: true });
+  };
+
+  crearCompra(parcial = false) {
+    if (!this.checkCompra()) {
+      return;
+    }
+
     var factura = {};
-    factura.total = this.state.total;
+    factura.total = this.state.montoTotal;
     factura.detalle = [];
+    factura.parcial = parcial;
     this.state.data.forEach(el => {
       factura.detalle.push({
         codigo: this.getProducto(el.codigo).id,
@@ -210,6 +340,7 @@ class Compras extends Component {
       });
     });
     this.addCompra(factura);
+
     //alert(JSON.stringify(factura));
   }
 
@@ -237,6 +368,10 @@ class Compras extends Component {
     this.setState({ montoTotal: e.target.value });
   };
 
+  getButtonColor(disabled) {
+    return disabled ? "#78909c" : "#0277bd";
+  }
+
   /**
    * Actualiza el estado de los datos temprales
    * @param {Event} e Input para obtener el valor
@@ -255,12 +390,13 @@ class Compras extends Component {
    */
   handleDataBlur = (e, name) => {
     let tempData = { ...this.state.tempData };
-    tempData[name] = e.target.value;
+    //tempData[name] = e.target.value;
     const producto = this.getProducto(tempData.codigo);
     if (producto != null) {
       tempData.producto = producto.producto;
-      //tempData.precioUnitario = producto.precioActual;
-      tempData.precio = tempData.precioUnitario * tempData.cantidad;
+      var n1 = new bigDecimal(tempData.precioUnitario);
+      var n2 = new bigDecimal(tempData.cantidad);
+      tempData.precio = parseFloat(n1.multiply(n2).getValue());
     }
 
     this.setState({ tempData });
@@ -309,12 +445,13 @@ class Compras extends Component {
   };
 
   renderInsertRow = classes => {
-    const { tempData } = this.state;
+    const { tempData, sendingData, total, montoTotal } = this.state;
+
     return (
       <React.Fragment>
         <TableCell className={classes.insertCell}>
           <TextField
-            autoFocus={this.state.montoTotal != ""}
+            autoFocus={this.state.montoTotal !== ""}
             id="codigo"
             label="Codigo"
             inputRef={this.firstInput}
@@ -322,6 +459,7 @@ class Compras extends Component {
             value={tempData.codigo}
             onChange={e => this.handleDataChange(e, "codigo")}
             onBlur={e => this.handleDataBlur(e, "codigo")}
+            inputProps={{ maxLength: 30 }}
           />
         </TableCell>
         <TableCell className={classes.insertCell}>
@@ -335,6 +473,7 @@ class Compras extends Component {
             value={tempData.cantidad}
             onChange={e => this.handleDataChange(e, "cantidad")}
             onBlur={e => this.handleDataBlur(e, "cantidad")}
+            InputProps={{ inputComponent: IntegerFormat }}
           />
         </TableCell>
 
@@ -347,6 +486,7 @@ class Compras extends Component {
             value={tempData.precioUnitario}
             onChange={e => this.handleDataChange(e, "precioUnitario")}
             onBlur={e => this.handleDataBlur(e, "precioUnitario")}
+            InputProps={{ inputComponent: MoneyFormat }}
           />
         </TableCell>
         <TableCell className={classes.insertCell}>
@@ -358,6 +498,10 @@ class Compras extends Component {
 
   render() {
     const { classes, theme } = this.props;
+
+    const { sendingData, total, montoTotal } = this.state;
+
+    const notFinished = sendingData || total != parseInt(montoTotal);
     return (
       <AdminDashboard>
         <Grid container>
@@ -376,6 +520,7 @@ class Compras extends Component {
                     }}
                     style={{ margin: "10px" }}
                     disabled={this.state.clienteExiste}
+                    InputProps={{ inputComponent: MoneyFormat }}
                   />
                 </Form>
               </CardContent>
@@ -393,94 +538,51 @@ class Compras extends Component {
           data={this.state.data}
           syncData={this.syncData}
           syncTempData={this.syncTempData}
+          checkBeforeAdd={this.checkBeforeAdd}
         />
+        <BottomNavigation style={{ width: "100%", marginTop: 30 }} showLabels>
+          <BottomNavigationAction
+            disabled
+            label={
+              "Q." +
+              this.state.total.toFixed(2) +
+              "/ Q." +
+              new bigDecimal(this.state.montoTotal).round(2).getPrettyValue()
+            }
+            icon={<MoneyIcon />}
+          />
+          <BottomNavigationAction
+            disabled
+            label={this.state.cantidad}
+            icon={<ProductsIcon />}
+          />
+          <BottomNavigationAction
+            label="Guardar"
+            style={{ color: this.getButtonColor(false) }}
+            icon={<SaveIcon />}
+            onClick={() => {
+              this.crearCompra(true);
+            }}
+          />
+          <BottomNavigationAction
+            label="Terminar"
+            icon={<FinishIcon />}
+            onClick={() => this.crearCompra(false)}
+            disabled={notFinished}
+            style={{ color: this.getButtonColor(notFinished) }}
+          />
+        </BottomNavigation>
 
-        <Grid container style={{ paddingTop: "20px" }}>
-          <Grid item xs={12}>
-            <Card className={classes.card}>
-              <CardContent className={classes.content}>
-                <Grid container>
-                  <Grid item xs={4}>
-                    <Grid container>
-                      <Grid item xs={3}>
-                        <Avatar className={classes.moneyAvatar}>
-                          <MoneyIcon className={classes.moneyIcon} />
-                        </Avatar>
-                      </Grid>
-
-                      <Grid item xs={6} className={classes.text}>
-                        <Typography
-                          color="textSecondary"
-                          component="h6"
-                          variant="h6"
-                          gutterBottom
-                        >
-                          Total
-                        </Typography>
-                        <Typography component="h5" variant="h5" gutterBottom>
-                          {"Q." +
-                            this.state.total.toFixed(2) +
-                            "/" +
-                            parseInt(this.state.montoTotal).toFixed(2)}
-                        </Typography>
-                      </Grid>
-                    </Grid>
-                  </Grid>
-
-                  <Grid item xs={4}>
-                    <Grid container>
-                      <Grid item xs={3}>
-                        <Avatar className={classes.productsAvatar}>
-                          <ProductsIcon className={classes.productIcon} />
-                        </Avatar>
-                      </Grid>
-
-                      <Grid item xs={6} className={classes.text}>
-                        <Typography
-                          color="textSecondary"
-                          component="h6"
-                          variant="h6"
-                          gutterBottom
-                        >
-                          Articulos
-                        </Typography>
-                        <Typography component="h5" variant="h5" gutterBottom>
-                          {this.state.cantidad}
-                        </Typography>
-                      </Grid>
-                    </Grid>
-                  </Grid>
-
-                  <Grid item xs={4} className={classes.button}>
-                    <Grid container>
-                      <Grid item xs={3} />
-                      <Grid item xs={3}>
-                        <Button
-                          variant="extendedFab"
-                          aria-label="Delete"
-                          className={classes.button1}
-                          onClick={() => this.crearCompra()}
-                          disabled={
-                            this.state.sendingData ||
-                            this.state.total != parseInt(this.state.montoTotal)
-                          }
-                        >
-                          <NavigationIcon className={classes.extendedIcon} />
-                          Terminar
-                        </Button>
-                      </Grid>
-                    </Grid>
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+        <div
+          style={{ float: "left", clear: "both" }}
+          ref={el => {
+            this.end = el;
+          }}
+        />
         <Snackbar
           anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
           open={this.state.open}
           onClose={this.handleClose}
-          ContentProps={{ "aria-describedby": "message-id" }}
           message={<span id="message-id">{this.state.message}</span>}
         />
       </AdminDashboard>

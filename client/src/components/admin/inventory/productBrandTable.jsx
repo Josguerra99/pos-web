@@ -119,6 +119,8 @@ class ProductBrandTable extends Component {
     return (
       <TextField
         autoFocus
+        required
+        autoComplete="off"
         margin="dense"
         id="name"
         label="Nombre"
@@ -127,6 +129,7 @@ class ProductBrandTable extends Component {
         value={this.state.tempElement.marca}
         onChange={this.handleName}
         fullWidth
+        inputProps={{ maxLength: 30 }}
       />
     );
   };
@@ -146,6 +149,8 @@ class ProductBrandTable extends Component {
         dialogName="marca"
         onInsert={this.onInsert}
         onUpdate={this.onUpdate}
+        hasData={this.props.hasData}
+        messageHandler={this.props.messageHandler}
         columns={1}
       />
     );
