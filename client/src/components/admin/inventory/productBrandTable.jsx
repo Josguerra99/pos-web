@@ -58,7 +58,8 @@ class ProductBrandTable extends Component {
         this.state.tempElement.marca,
         "MARCA",
         callback,
-        "marcaHasChanges"
+        "marcaHasChanges",
+        "brand"
       );
     } else callback(0);
   };

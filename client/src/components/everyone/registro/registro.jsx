@@ -65,7 +65,16 @@ const steps = ["Datos del negocio", "Datos del comprador", "Finalizar compra"];
 class Checkout extends React.Component {
   state = {
     activeStep: 0,
-    negocio: { nit: "", nombre: "", denominacion: "", direccion: "" },
+    negocio: {
+      nit: "",
+      nombre: "",
+      denominacion: "",
+      direccion: "",
+      nombreIn: "",
+      apellidoIn: "",
+      juridica: true,
+      pequeno: false
+    },
     comprador: { user: "", pass1: "", pass2: "" },
     snack: { open: false, message: "" },
     registrado: { val: false, message: [], terminado: false }
@@ -103,14 +112,28 @@ class Checkout extends React.Component {
 
   checkNegocio = () => {
     const { negocio } = this.state;
-    if (
-      negocio.nit === "" ||
-      negocio.nombre === "" ||
-      negocio.denominacion === "" ||
-      negocio.direccion === ""
-    ) {
-      this.handleSnackOpen("Ingresa todos los datos");
-      return false;
+    if (negocio.juridica) {
+      if (
+        negocio.nit === "" ||
+        negocio.nombre === "" ||
+        negocio.denominacion === "" ||
+        negocio.direccion === ""
+      ) {
+        this.handleSnackOpen("Ingresa todos los datos");
+        return false;
+      }
+    } else {
+      if (
+        negocio.nit === "" ||
+        negocio.nombreIn === "" ||
+        negocio.apellidoIn === "" ||
+        negocio.direccion === ""
+      ) {
+        this.handleSnackOpen("Ingresa todos los datos");
+        return false;
+      }
+
+      this.handleNegocio("nombre", negocio.nombreIn + " " + negocio.apellidoIn);
     }
 
     return true;
@@ -139,6 +162,7 @@ class Checkout extends React.Component {
     negocio[name] = val;
     this.setState({ negocio });
   };
+
   handleComprador = (name, val) => {
     var comprador = { ...this.state.comprador };
     comprador[name] = val;

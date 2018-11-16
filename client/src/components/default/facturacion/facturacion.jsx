@@ -13,7 +13,7 @@ import CardContent from "@material-ui/core/CardContent";
 import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 import Form from "@material-ui/core/FormGroup";
-import { th } from "date-fns/esm/locale";
+//import { th } from "date-fns/esm/locale";
 
 import Avatar from "@material-ui/core/Avatar";
 import MoneyIcon from "@material-ui/icons/AttachMoneyRounded";
@@ -31,8 +31,11 @@ import IntegerFormat from "../../common/inputFormats/integer";
 import BottomNavigation from "@material-ui/core/BottomNavigation";
 import BottomNavigationAction from "@material-ui/core/BottomNavigationAction";
 
+import Warning from "../../common/warningMessage";
+
 import SaveIcon from "@material-ui/icons/Save";
 import FinishIcon from "@material-ui/icons/SkipNext";
+import io from "socket.io-client";
 
 var bigDecimal = require("js-big-decimal");
 
@@ -98,6 +101,7 @@ const styles = theme => ({
 
 class Facturacion extends Component {
   state = {
+    editing: false,
     productos: [],
     hasData: false,
     tempData: {
@@ -128,7 +132,8 @@ class Facturacion extends Component {
     resolucion: {
       hasIt: false,
       res: null
-    }
+    },
+    socket: null
   };
 
   constructor(props) {
@@ -137,10 +142,34 @@ class Facturacion extends Component {
     this.nitInput = React.createRef();
     this.end = React.createRef();
     this.scrollToBottom = this.scrollToBottom.bind(this);
-    //this.bringResolucion();
   }
 
-  bringResolucion() {
+  initSocket = responseFunction => {
+    const socket = io("localhost:3001");
+
+    socket.on("connect", () => {
+      console.log("Connected");
+    });
+
+    socket.on("RECEIVE_FACTURA", function(data) {
+      responseFunction();
+    });
+
+    this.setState({ socket });
+  };
+
+  socketAddFactura = () => {
+    this.state.socket.emit("ADD_FACTURA", {
+      data: "factura ingresada para resolucion"
+    });
+  };
+
+  updateAfterFact = () => {
+    this.bringResolucion();
+    this.bringProductos(true);
+  };
+
+  bringResolucion = () => {
     //Realizar peticion get
     fetch("/api/resolucion_activa?doc=FAC")
       .then(res => res.json())
@@ -155,8 +184,9 @@ class Facturacion extends Component {
         }
         this.setState({ resolucion: { hasIt: true, res: res } });
       });
-  }
+  };
   componentDidMount() {
+    this.initSocket(this.updateAfterFact);
     this.bringProductos();
     this.bringResolucion();
   }
@@ -164,7 +194,7 @@ class Facturacion extends Component {
   componentDidUpdate() {
     this.scrollToBottom();
   }
-  componentWillUnmount() {}
+  componentWillMount() {}
 
   scrollToBottom = () => {
     if (this.end == undefined || this.end.scrollIntoView == undefined) return;
@@ -184,13 +214,14 @@ class Facturacion extends Component {
    * Traer los productos para hacer el ingreso mas rapido
    */
 
-  bringProductos() {
+  bringProductos(recheck = false) {
     //Realizar peticion get
     return fetch("/api/getInventoryFact")
       .then(res => res.json())
       .then(data => {
         if (data.length > 0) {
           this.setState({ productos: data });
+          if (recheck) this.recheckAllProducts();
         } else {
           this.setState({ productos: null });
         }
@@ -211,6 +242,7 @@ class Facturacion extends Component {
             }
           });
           this.setState({ clienteExiste: true });
+          this.firstInput.current.focus();
         } else {
           this.setState({
             cliente: { nit: this.state.cliente.nit, nombre: "", direccion: "" }
@@ -234,11 +266,11 @@ class Facturacion extends Component {
 
   addFactura = (factura, callback) => {
     this.setState({ sendingData: true });
-    this.bringResolucion();
     const requestData = {
       total: factura.total,
       cliente: factura.cliente,
-      detalle: factura.detalle
+      detalle: factura.detalle,
+      num: this.props.num
     };
     fetch("/api/addFactura", {
       method: "POST",
@@ -250,6 +282,7 @@ class Facturacion extends Component {
       .then(res => res.json())
       .then(data => {
         //alert(data);
+        this.socketAddFactura();
         var err = parseInt(data["@err"]);
         this.setState({ sendingData: false });
         if (err === 0) {
@@ -320,6 +353,63 @@ class Facturacion extends Component {
     this.setState({ cliente });
   };
 
+  recheckAllProducts = () => {
+    const prop = "codigo";
+    const helper = [];
+    const group = this.state.data.reduce(function(groups, item) {
+      const val = item[prop];
+      if (!helper.includes(val)) helper.push(val);
+      groups[val] = groups[val] || [];
+      groups[val].push(item);
+      return groups;
+    }, {});
+
+    var message =
+      "El inventario a sido actualizado, el stock no alcanza para los siguiente productos: ";
+    var count = 0;
+    for (var i = 0; i < helper.length; i++) {
+      var sum = group[helper[i]]
+        .map(item => parseInt(item.cantidad))
+        .reduce((prev, next) => prev + next);
+
+      if (this.getProducto(helper[i]).stock < sum) {
+        message += " " + helper[i];
+        count++;
+      }
+    }
+    if (count > 0) {
+      this.handleSnackOpen(message);
+      return false;
+    }
+
+    return true;
+  };
+
+  checkProductStock = (codigo, cantidad) => {
+    var cantidadIngresada = 0;
+    this.state.data.forEach((el, i) => {
+      if (!this.state.editing) {
+        if (el.codigo === codigo) {
+          cantidadIngresada += parseInt(el.cantidad);
+        }
+      } else if (el.codigo === codigo && el.id !== this.state.tempData.id) {
+        cantidadIngresada += parseInt(el.cantidad);
+      }
+    });
+
+    //cantidad = cantidad + cantidadIngresada;
+    const stock = this.getProducto(codigo).stock;
+
+    cantidad = parseInt(cantidad);
+    cantidad += cantidadIngresada;
+    if (stock < cantidad) {
+      this.handleSnackOpen("No hay suficientes productos en stock");
+      return false;
+    }
+
+    return true;
+  };
+
   checkFactura = () => {
     if (this.state.resolucion.res === null) {
       this.handleSnackOpen("No hay ninguna resolución vigente");
@@ -381,7 +471,10 @@ class Facturacion extends Component {
       return false;
     }
 
-    return true;
+    return this.checkProductStock(
+      this.state.tempData.codigo,
+      this.state.tempData.cantidad
+    );
   };
 
   handleClienteBlur = e => {
@@ -428,6 +521,10 @@ class Facturacion extends Component {
       var n1 = new bigDecimal(tempData.precioUnitario);
       var n2 = new bigDecimal(tempData.cantidad);
       tempData.precio = parseFloat(n1.multiply(n2).getValue());
+    } else {
+      tempData.producto = null;
+      tempData.precioUnitario = 0;
+      tempData.precio = 0;
     }
 
     this.setState({ tempData });
@@ -447,6 +544,10 @@ class Facturacion extends Component {
 
   syncTempData = tempData => {
     this.setState({ tempData });
+  };
+
+  syncEditing = val => {
+    this.setState({ editing: val });
   };
 
   /**
@@ -495,6 +596,7 @@ class Facturacion extends Component {
             onChange={e => this.handleDataChange(e, "codigo")}
             onBlur={e => this.handleDataBlur(e, "codigo")}
             inputProps={{ maxLength: 30 }}
+            disabled={!this.resolucionExiste()}
           />
         </TableCell>
         <TableCell className={classes.insertCell}>
@@ -510,6 +612,7 @@ class Facturacion extends Component {
             onChange={e => this.handleDataChange(e, "cantidad")}
             onBlur={e => this.handleDataBlur(e, "cantidad")}
             InputProps={{ inputComponent: IntegerFormat }}
+            disabled={!this.resolucionExiste()}
           />
         </TableCell>
 
@@ -521,6 +624,11 @@ class Facturacion extends Component {
         </TableCell>
       </React.Fragment>
     );
+  };
+
+  resolucionExiste = () => {
+    if (this.state.resolucion.hasIt) return this.state.resolucion.res !== null;
+    else return true;
   };
 
   render() {
@@ -544,6 +652,7 @@ class Facturacion extends Component {
                     onBlur={this.handleClienteBlur}
                     style={{ margin: "10px" }}
                     inputProps={{ maxLength: 10 }}
+                    disabled={!this.resolucionExiste()}
                   />
                   <TextField
                     id="cliente"
@@ -553,7 +662,9 @@ class Facturacion extends Component {
                       this.handleClienteChange(e, "nombre");
                     }}
                     style={{ margin: "10px" }}
-                    disabled={this.state.clienteExiste}
+                    disabled={
+                      this.state.clienteExiste || !this.resolucionExiste()
+                    }
                     inputProps={{ maxLength: 255 }}
                   />
                   <TextField
@@ -564,7 +675,9 @@ class Facturacion extends Component {
                       this.handleClienteChange(e, "direccion");
                     }}
                     style={{ margin: "10px" }}
-                    disabled={this.state.clienteExiste}
+                    disabled={
+                      this.state.clienteExiste || !this.resolucionExiste()
+                    }
                     inputProps={{ maxLength: 255 }}
                   />
                 </Form>
@@ -584,6 +697,7 @@ class Facturacion extends Component {
           checkBeforeAdd={this.checkBeforeAdd}
           syncData={this.syncData}
           syncTempData={this.syncTempData}
+          syncEditing={this.syncEditing}
         />
 
         <BottomNavigation style={{ width: "100%", marginTop: 30 }} showLabels>
@@ -599,8 +713,10 @@ class Facturacion extends Component {
           />
           <BottomNavigationAction
             label="Guardar"
-            disabled //style={{ color: "#0277bd" }}
-            icon={<SaveIcon />}
+            disabled
+            icon={
+              <SaveIcon /> //style={{ color: "#0277bd" }}
+            }
             onClick={() => {
               this.crearFactura(true);
             }}
@@ -609,15 +725,21 @@ class Facturacion extends Component {
             label="Terminar"
             icon={<FinishIcon />}
             onClick={() => this.crearFactura(false)}
-            style={{ color: "#0277bd" }}
+            disabled={!this.resolucionExiste()}
+            style={{ color: this.resolucionExiste() ? "#0277bd" : "#78909c" }}
           />
         </BottomNavigation>
+        {!this.resolucionExiste() && (
+          <Warning message="No hay ninguna resolución vigente para facturar" />
+        )}
+
         <div
           style={{ float: "left", clear: "both" }}
           ref={el => {
             this.end = el;
           }}
         />
+
         <Snackbar
           anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
           open={this.state.open}

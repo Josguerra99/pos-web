@@ -63,8 +63,12 @@ class DynamicInsertTable extends Component {
     let tempData = data[arrayID];
 
     this.setState({ editing: true });
-
     this.props.syncTempData(tempData);
+
+    if (this.props.syncEditing) {
+      this.props.syncEditing(true);
+    }
+
     //this.setState({ tempData });
 
     this.props.firstInput.current.focus();
@@ -73,6 +77,7 @@ class DynamicInsertTable extends Component {
     if (this.props.checkBeforeAdd && !this.props.checkBeforeAdd()) {
       return;
     }
+
     const { tempData } = this.props;
     const data = [...this.props.data];
     data[tempData.id] = tempData;
@@ -86,6 +91,9 @@ class DynamicInsertTable extends Component {
     this.setState({ editing: false }, () => {
       this.props.firstInput.current.focus();
     });
+    if (this.props.syncEditing) {
+      this.props.syncEditing(false);
+    }
   };
 
   insertRow = () => {

@@ -226,7 +226,7 @@ class InventoryMngr extends Component {
    * @param {*} name nombre del dato que se va a insertar
    * @param {*} type tipo de helper a traer (MARCA/DESCRIPCION/NOMBRE/PRESENTACION)
    */
-  addHelper = (name, type, callback, changes) => {
+  addHelper = (name, type, callback, changes, tabID) => {
     const requestData = {
       type: type,
       name: name
@@ -242,7 +242,10 @@ class InventoryMngr extends Component {
       .then(data => {
         var err = data["@err"];
         if (err === 0) this.setState({ invHasChanges: true });
-        if (err === 0) this.setState({ [changes]: true });
+        if (err === 0)
+          this.setState({ [changes]: true }, () =>
+            this.bringRequiredData(tabID)
+          );
         callback(parseInt(err));
       });
   };
@@ -267,7 +270,10 @@ class InventoryMngr extends Component {
       .then(res => res.json())
       .then(data => {
         var err = data["@err"];
-        if (err === 0) this.setState({ invHasChanges: true });
+        if (err === 0)
+          this.setState({ invHasChanges: true }, () =>
+            this.bringRequiredData("inv")
+          );
         callback(parseInt(err));
       });
   };

@@ -78,9 +78,6 @@ class HistorialTransacciones extends Component {
 
   componentDidMount() {
     this.bringResolucion();
-    reportmngr.openReport("historialResoluciones", fireURL => {
-      this.setState({ printURL: fireURL });
-    });
   }
 
   async beforeFilters() {
@@ -113,6 +110,8 @@ class HistorialTransacciones extends Component {
     // this.setState({ data: [] });
     const request = { filters: filters };
 
+    this.setState({ printURL: null });
+
     return fetch("/api/getTransacciones", {
       method: "POST",
       body: JSON.stringify(request),
@@ -122,6 +121,7 @@ class HistorialTransacciones extends Component {
     })
       .then(res => res.json())
       .then(data => {
+        this.getReport(data);
         if (data.length > 0) {
           this.setState({
             data: data.map((el, index) => {
@@ -135,13 +135,16 @@ class HistorialTransacciones extends Component {
               if (el.documento === "NC") documento = "Nota de Crédito";
               if (el.documento === "ND") documento = "Nota de Débito";
               var fecha = formatDate(el.fecha, "dd/MM/yyyy");
+
+              var monto = "Q." + el.monto.toFixed(2);
+
               return {
                 id: index,
                 ntransaccion: el.ntransaccion,
                 documento: documento,
                 correlativo: el.correlativo,
                 serie: el.serie,
-                monto: el.monto,
+                monto: monto,
                 fecha: fecha,
                 tipo: tipo
               };
@@ -150,6 +153,17 @@ class HistorialTransacciones extends Component {
         }
         this.setState({ hasData: true });
       });
+  }
+
+  /**
+   * Obtiene el reporte reseteandolo para crearlo de nuevo
+   * @param {JSON} data datos que se le pasaran al backend para que cree el reporte
+   */
+  getReport(data) {
+    reportmngr.reset();
+    reportmngr.openReport("historialTransacciones", data, fireURL => {
+      this.setState({ printURL: fireURL });
+    });
   }
 
   /*

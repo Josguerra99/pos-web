@@ -47,6 +47,8 @@ class AddNegocio {
     negocio.nombre = this.negocio.nombre.trim();
     negocio.denominacion = this.negocio.denominacion.trim();
     negocio.direccion = this.negocio.direccion.trim();
+    negocio.pequeno = this.negocio.pequeno;
+    negocio.juridico = this.negocio.juridica;
     data.negocio = negocio;
 
     comprador.user = this.comprador.user.trim();

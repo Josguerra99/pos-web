@@ -6,7 +6,7 @@ import Home from "../components/everyone/home";
 import RegistroPro from "../components/everyone/registro/pro";
 
 import HomeDefault from "../components/default/homedefault";
-import HomeSystem from "../components/system/homesystem";
+import HomeSystem from "../components/system/resolucionSistema";
 
 import HomeAdmin from "../components/admin/homeadmin";
 import AgregarResolucionAdmin from "../components/admin/resoluciones/agregarResolucion";

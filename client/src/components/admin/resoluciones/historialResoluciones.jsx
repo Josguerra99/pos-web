@@ -139,6 +139,7 @@ class HistorialResoluciones extends Component {
               if (el.Documento === "NC") documento = "Nota de Crédito";
               if (el.Documento === "ND") documento = "Nota de Débito";
               var fecha = formatDate(el.Fecha, "dd/MM/yyyy");
+              var ingreso = formatDate(el.fechaIngreso, "dd/MM/yyyy");
               return {
                 id: index,
                 Num: el.Num,
@@ -146,7 +147,9 @@ class HistorialResoluciones extends Component {
                 Documento: documento,
                 Rango: rango,
                 Fecha: fecha,
-                Activa: el.Activo
+                Activa: el.Activo,
+                vigente: el.vigente,
+                ingreso: ingreso
               };
             })
           });
@@ -177,7 +180,8 @@ class HistorialResoluciones extends Component {
         <TableCell>Documento</TableCell>
         <TableCell>Rango</TableCell>
         <TableCell>Fecha</TableCell>
-        <TableCell>Actual</TableCell>
+        <TableCell>Ingreso</TableCell>
+        <TableCell>Vigente</TableCell>
       </TableRow>
     );
   }
@@ -203,7 +207,8 @@ class HistorialResoluciones extends Component {
         <TableCell>{row.Documento}</TableCell>
         <TableCell>{row.Rango}</TableCell>
         <TableCell>{row.Fecha}</TableCell>
-        <TableCell>{this.renderBoolIcon(row.Activa)}</TableCell>
+        <TableCell>{row.ingreso}</TableCell>
+        <TableCell>{this.renderBoolIcon(row.vigente)}</TableCell>
       </TableRow>
     );
   };

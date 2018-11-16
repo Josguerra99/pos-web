@@ -13,6 +13,10 @@ import TableRow from "@material-ui/core/TableRow";
 import CheckIcon from "@material-ui/icons/Check";
 import WrongIcon from "@material-ui/icons/Close";
 
+import ThisIcon from "@material-ui/icons/LocationOn";
+
+import Chip from "@material-ui/core/Chip";
+
 const styles = theme => ({
   list: {
     width: 250
@@ -43,7 +47,8 @@ const styles = theme => ({
 class RegistrarComputadora extends Component {
   state = {
     hasData: false,
-    data: []
+    data: [],
+    registro: { val: true, num: null }
   };
 
   constructor(props) {
@@ -51,20 +56,22 @@ class RegistrarComputadora extends Component {
   }
 
   componentDidMount() {
+    this.checkComputadora();
     this.bringComputadoras();
   }
 
-  /**
-   * Traer la resolucion de la base de datos
-   * Al traerla se creara un arreglo con map
-   * este arreglo es el que se utilizara en
-   * la tabla, tiene los datos de la base de
-   * datos pero cambiamos el documento de
-   * a palabra (FAC = Factura), se pone el
-   * formato de la fecha y se agrega un id para
-   * las filas, al final este array se guarda
-   * como un state
-   */
+  checkComputadora() {
+    return fetch("/api/getComputadora")
+      .then(res => res.json())
+      .then(data => {
+        if (data["@err"] !== 0) {
+          this.setState({ registro: { val: false } });
+        } else {
+          this.setState({ registro: { val: true, num: data["num"] } });
+        }
+      });
+  }
+
   bringComputadoras(filters = []) {
     return fetch("/api/getComputadoras")
       .then(res => res.json())
@@ -76,9 +83,41 @@ class RegistrarComputadora extends Component {
       });
   }
 
+  register(num, codigo) {
+    this.setState({ hasData: false });
+    var requestData = { num: num, codigo: codigo };
+    return fetch("/api/registerComputadora", {
+      method: "POST",
+      body: JSON.stringify(requestData),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    })
+      .then(res => res.json())
+      .then(data => {
+        this.setState({ registro: { val: true, num } });
+        this.bringComputadoras();
+      });
+  }
+
   renderBoolIcon(val) {
     if (val) return <CheckIcon style={{ fontSize: 20, color: "#0091ea" }} />;
     else return <WrongIcon style={{ fontSize: 20, color: "#90a4ae" }} />;
+  }
+
+  renderChip(num) {
+    {
+      if (this.state.registro.val && this.state.registro.num === num)
+        return (
+          <Chip
+            label="Este equipo"
+            variant="outlined"
+            style={{ color: "#0288d1" }}
+            color="primary"
+            icon={<ThisIcon />}
+          />
+        );
+    }
   }
 
   /*
@@ -110,13 +149,17 @@ class RegistrarComputadora extends Component {
         <TableCell>{row.codigo}</TableCell>
         <TableCell>{this.renderBoolIcon(row.registrada)}</TableCell>
         <TableCell>
-          <IconButton //className={classes.button}
+          <IconButton
             aria-label="ViewMore"
             color="primary"
-            disabled={row.registrada}
+            disabled={row.registrada || this.state.registro.val}
+            onClick={() => {
+              this.register(row.num, row.codigo);
+            }}
           >
             <MoreIcon />
           </IconButton>
+          {this.renderChip(row.num)}
         </TableCell>
       </TableRow>
     );

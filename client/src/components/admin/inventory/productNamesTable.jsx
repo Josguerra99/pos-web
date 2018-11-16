@@ -49,7 +49,8 @@ class ProductNamesTable extends Component {
         this.state.tempElement.nombre,
         "NOMBRE",
         callback,
-        "nombHasChanges"
+        "nombHasChanges",
+        "product"
       );
     } else callback(0);
   };

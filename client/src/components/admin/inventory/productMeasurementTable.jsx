@@ -68,7 +68,8 @@ class ProductMeasurmentTable extends Component {
         this.state.tempElement.presentacion,
         "PRESENTACION",
         callback,
-        "presHasChanges"
+        "presHasChanges",
+        "measurment"
       );
     } else callback(0);
   };
