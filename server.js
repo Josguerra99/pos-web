@@ -8,12 +8,14 @@ const app = express();
 const bodyParser = require("body-parser");
 const session = require("express-session");
 const path = require("path");
-
+const cookieParser = require("cookie-parser");
 const SessionMngr = require("./server/models/user-session");
+
 //Midlewares
 
 app.use(express.static(path.join(__dirname, "client/build")));
 app.use(bodyParser.json());
+app.use(cookieParser());
 
 app.use(
   session({
@@ -23,13 +25,6 @@ app.use(
   })
 );
 
-///---------------Autenticacion
-
-const User = require("./server/models/users/user-mngr");
-
-/****
- *INVENTARIO
- */
 require("./server/models/inventory/inventory-routes")(app);
 require("./server/models/facturacion/facturacion-routes")(app);
 require("./server/models/compras/compras-routes")(app);
@@ -42,13 +37,26 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname + "/client/build/index.html"));
 });
 
-//Cambiar puento dinamicamente
-const port = process.env.PORT || 3001;
-app.listen(port, () => console.log(`Listening on port ${port}...`));
-
 app.get("/", (req, res) => {
   res.send("Backend :D");
 });
+
+//Cambiar puento dinamicamente
+const port = process.env.PORT || 3001;
+var server = app.listen(port, () =>
+  console.log(`Listening on port ${port}...`)
+);
+
+var io = require("socket.io")(server);
+
+io.on("connection", socket => {
+  console.log(socket.id);
+
+  socket.on("ADD_FACTURA", function(data) {
+    io.emit("RECEIVE_FACTURA", data);
+  });
+});
+
 process.on("uncaughtException", function(err) {
   console.error(err);
   console.log("Node NOT Exiting...");

@@ -5,69 +5,71 @@ let comprasMngr = {};
 
 comprasMngr.addCompra = (nit_negocio, detalle, total, parcial, callback) => {
   if (con) {
-    con.beginTransaction(function(err) {
-      if (err) {
-        console.log(err);
-        callback(err, null);
-        return;
-      }
+    con.getConnection((error, connection) => {
+      connection.beginTransaction(function(err) {
+        if (err) {
+          connectionsole.log(err);
+          callback(err, null);
+          return;
+        }
 
-      con.query(
-        "SET @codCompra=-1; CALL add_compra(?,?,?,@codCompra); SELECT @codCompra;",
-        [nit_negocio, total, parcial],
-        (err, rows) => {
-          if (err) {
-            con.rollback(() => {
-              console.log(
-                "Error al intentar agregar el coso de compra  " + err
-              );
-              callback(err, null);
-              return;
-            });
-          }
-          //console.log(rows);
-          const codCompra = parseInt(rows[rows.length - 1][0]["@codCompra"]);
-
-          var detalleQuery = "";
-          detalle.forEach(element => {
-            detalleQuery +=
-              "CALL add_detalleCompra(" +
-              mysql.escape(element.codigo) +
-              "," +
-              mysql.escape(codCompra) +
-              "," +
-              mysql.escape(element.cantidad) +
-              "," +
-              mysql.escape(element.precio) +
-              "," +
-              mysql.escape(nit_negocio) +
-              ");";
-          });
-
-          con.query(detalleQuery, [], (err, rows) => {
+        connection.query(
+          "SET @codCompra=-1; CALL add_compra(?,?,?,@codCompra); SELECT @codCompra;",
+          [nit_negocio, total, parcial],
+          (err, rows) => {
             if (err) {
               con.rollback(() => {
                 console.log(
-                  "Error al intentar agregar el detalle de compra " + err
+                  "Error al intentar agregar el coso de compra  " + err
                 );
                 callback(err, null);
                 return;
               });
-            } else {
-              con.commit(err => {
-                if (err) {
-                  con.rollback(function() {
-                    callback(err, null);
-                    return;
-                  });
-                }
-
-                callback(null, null);
-              });
             }
-          });
-        }
-      );
+            //console.log(rows);
+            const codCompra = parseInt(rows[rows.length - 1][0]["@codCompra"]);
+
+            var detalleQuery = "";
+            detalle.forEach(element => {
+              detalleQuery +=
+                "CALL add_detalleCompra(" +
+                mysql.escape(element.codigo) +
+                "," +
+                mysql.escape(codCompra) +
+                "," +
+                mysql.escape(element.cantidad) +
+                "," +
+                mysql.escape(element.precio) +
+                "," +
+                mysql.escape(nit_negocio) +
+                ");";
+            });
+
+            connection.query(detalleQuery, [], (err, rows) => {
+              if (err) {
+                connection.rollback(() => {
+                  console.log(
+                    "Error al intentar agregar el detalle de compra " + err
+                  );
+                  callback(err, null);
+                  return;
+                });
+              } else {
+                connection.commit(err => {
+                  if (err) {
+                    connection.rollback(function() {
+                      callback(err, null);
+                      return;
+                    });
+                  }
+
+                  callback(null, null);
+                });
+              }
+            });
+          }
+        );
+      });
     });
   }
 };

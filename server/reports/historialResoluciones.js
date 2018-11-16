@@ -40,12 +40,12 @@ const tableStructure = resoluciones => {
  * @param {Array} session Arreglo que tiene informacion de sesion
  * @param {Array} resoluciones Arreglo que tiene todas las resoluciones que queremos generar en el reporte
  */
-exports.createContent = function(session, resoluciones) {
+exports.createContent = function(session, resoluciones, negocio) {
   definition = {
     content: [
-      helper.infoCreator("Nombre", "Empresa", helper.getDate()),
+      helper.infoCreator("Nombre", negocio.Nombre, helper.getDate()),
       helper.infoCreator("NIT", session.nit_negocio),
-      helper.infoCreator("Dirección", "Ciudad"),
+      helper.infoCreator("Dirección", negocio.Direccion),
       helper.spacing(3),
       {
         table: {

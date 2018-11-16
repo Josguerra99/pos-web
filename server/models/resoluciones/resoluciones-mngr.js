@@ -65,12 +65,45 @@ resolucionMngr.getResoluciones = (nit_negocio, filters, callback) => {
   if (con) {
     const whereQuery = FilterMngr.createFilter(filters);
     con.query(
-      "SELECT Num, Serie,Inicio,Fin,Actual,Fecha,Documento, Activo FROM Resolucion WHERE  nit_negocio=? AND " +
-        whereQuery,
+      "SELECT Num, Serie,Inicio,Fin,Actual,Fecha,Documento, Activo,fechaIngreso,(Activo=TRUE AND  DATE(NOW()) < DATE_ADD(fechaIngreso, INTERVAL 2 YEAR)  AND Actual<Fin) AS vigente  FROM Resolucion WHERE  nit_negocio=? AND " +
+        whereQuery +
+        " ORDER BY fechaIngreso DESC",
       [nit_negocio],
       (err, rows) => {
         if (err) {
           console.log("Error al intentar extraer las resoluciones");
+        } else {
+          callback(null, rows);
+        }
+      }
+    );
+  }
+};
+
+resolucionMngr.getSistema = callback => {
+  if (con) {
+    con.query(
+      "SELECT num, fecha FROM ResolucionSistema ; ",
+      [],
+      (err, rows) => {
+        if (err) {
+          callback(err, rows);
+        } else {
+          callback(null, rows);
+        }
+      }
+    );
+  }
+};
+
+resolucionMngr.updateSistema = (num, fecha, callback) => {
+  if (con) {
+    con.query(
+      "UPDATE  ResolucionSistema SET num=?,fecha=? WHERE codigo=1; ",
+      [num, fecha],
+      (err, rows) => {
+        if (err) {
+          callback(err, rows);
         } else {
           callback(null, rows);
         }

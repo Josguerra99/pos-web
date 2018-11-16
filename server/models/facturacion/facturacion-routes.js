@@ -1,6 +1,9 @@
 const Facturacion = require("./facturacion-mngr");
 
 const Factura = require("../../reports/factura");
+const Computadora = require("../computadoras/computadora-mngr");
+
+const Resolucion = require("../../models/resoluciones/resoluciones-mngr.js");
 
 module.exports = function(app) {
   app.post("/api/reports/factura", (req, res) => {
@@ -15,19 +18,19 @@ module.exports = function(app) {
 
     Facturacion.getFacturaData(
       req.session.nit_negocio,
-      req.query.ntransaccion,
+      req.body.data.ntransaccion,
       (err, data) => {
         if (err) {
           res.status(500).send([
             {
               "@err": 1,
-              message: "Error al traer las factura " + err
+              message: "Error al traer las facturas " + err
             }
           ]);
         } else {
           Facturacion.getDetalle(
             req.session.nit_negocio,
-            req.query.ntransaccion,
+            req.body.data.ntransaccion,
             (err, detalle) => {
               if (err) {
                 res.status(500).send([
@@ -37,11 +40,12 @@ module.exports = function(app) {
                   }
                 ]);
               } else {
-                console.log(detalle);
-                Factura.createContent(data[0], detalle);
-                Factura.print(response => {
-                  res.setHeader("Content-Type", "application/pdf");
-                  res.send(response); // Buffer data
+                Resolucion.getSistema((err, resSistema) => {
+                  Factura.createContent(data[0], detalle, resSistema);
+                  Factura.print(response => {
+                    res.setHeader("Content-Type", "application/pdf");
+                    res.send(response); // Buffer data
+                  });
                 });
               }
             }
@@ -151,6 +155,7 @@ module.exports = function(app) {
             req.body.cliente,
             req.body.detalle,
             req.body.total,
+            Computadora.getComputadoraCookie(req.session.nit_negocio, req),
             (err, data) => {
               if (err) {
                 res.status(500).send([

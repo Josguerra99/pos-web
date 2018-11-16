@@ -19,11 +19,20 @@ computadorMngr.getComputadoras = (nit_negocio, callback) => {
   }
 };
 
-computadorMngr.registerComputadora = (nit_negocio, callback) => {
+computadorMngr.getComputadoraCookie = (nit_negocio, req) => {
+  const name = "computer_" + nit_negocio;
+  if (req.cookies[name] != undefined) {
+    return req.cookies[name].num;
+  } else {
+    return null;
+  }
+};
+
+computadorMngr.registerComputadora = (nit_negocio, codigo, callback) => {
   if (con) {
     con.query(
-      "UPDATE Computadora SET registrada=TRUE  WHERE nit_negocio=?; ",
-      [nit_negocio],
+      "UPDATE Computadora SET registrada=TRUE  WHERE nit_negocio=? AND codigo=?; ",
+      [nit_negocio, codigo],
       (err, rows) => {
         if (err) {
           callback(err, null);

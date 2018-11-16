@@ -1,8 +1,7 @@
 const report = require("./reportDisplayer");
 const helper = require("./reporthelper");
 const formatDate = require("date-fns/format");
-
-var definition = { content: ["No se logro obtener las resoluciones "] };
+var definition = { content: ["No se logro generar la factura "] };
 
 /**
  * Crea la estructura de la tabla de resoluciones
@@ -32,12 +31,18 @@ const getDetalle = detalle => {
   return rows;
 };
 
+const footerText = factura => {
+  return factura.pequeno
+    ? "No genera derecho a crédito fiscal"
+    : "Sujeto a pagos trimestrales";
+};
+
 /**
  *
  * @param {Array} session Arreglo que tiene informacion de sesion
  * @param {Array} resoluciones Arreglo que tiene todas las resoluciones que queremos generar en el reporte
  */
-exports.createContent = function(factura, detalle) {
+exports.createContent = function(factura, detalle, resSistema) {
   definition = {
     pageMargins: [2, 2, 2, 2],
     pageSize: { width: 226.776653344, height: "auto" },
@@ -60,7 +65,14 @@ exports.createContent = function(factura, detalle) {
         style: "header_emisor"
       },
       { text: "Resolución Sistema", style: "header_emisor" },
-      { text: "Res. 2006-1-1-7770077 del 04/08/2011", style: "resolucion" },
+      {
+        text:
+          "Res. " +
+          resSistema[0].num +
+          " del " +
+          formatDate(resSistema[0].fecha, "DD/MM/YYYY"),
+        style: "resolucion"
+      },
       helper.spacing(1),
       {
         columns: [
@@ -126,7 +138,7 @@ exports.createContent = function(factura, detalle) {
         ]
       },
       helper.spacing(2),
-      { text: "Sujeto a pagos trimestrales", style: "resolucion" },
+      { text: footerText(factura), style: "resolucion" },
       { text: "GRACIAS POR PREFERIRNOS", style: "resolucion" }
     ],
     footer: function(page, pages) {

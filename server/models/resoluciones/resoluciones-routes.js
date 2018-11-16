@@ -1,5 +1,6 @@
 const Resoluciones = require("./resoluciones-mngr");
 const HistorialResoluciones = require("../../reports/historialResoluciones");
+const Usuario = require("../users/user-mngr");
 
 module.exports = function(app) {
   /*Errores de respuesta -1 no autorizado, 0 no hay errores y 1 hubo errores en la transaccion*/
@@ -111,11 +112,53 @@ module.exports = function(app) {
       res.status(401).send(resjson);
       return;
     }
+    Usuario.getNegocioInfo(req.session.nit_negocio, (err, data) => {
+      HistorialResoluciones.createContent(req.session, req.body.data, data[0]);
+      HistorialResoluciones.print(response => {
+        res.setHeader("Content-Type", "application/pdf");
+        res.send(response); // Buffer data
+      });
+    });
+  });
 
-    HistorialResoluciones.createContent(req.session, req.body.data);
-    HistorialResoluciones.print(response => {
-      res.setHeader("Content-Type", "application/pdf");
-      res.send(response); // Buffer data
+  app.get("/api/getResolucionSistema", (req, res) => {
+    if (!req.session.role || req.session.role !== "SYS") {
+      var resjson = [{ "@err": -1, message: "No autorizado" }];
+      res.status(401).send(resjson);
+      return;
+    }
+
+    Resoluciones.getSistema((err, data) => {
+      if (err) {
+        console.log(err);
+        res
+          .status(500)
+          .send([
+            { "@err": 1, message: "Error al traer datos de la resolucion" }
+          ]);
+      } else {
+        res.status(200).send(data);
+      }
+    });
+  });
+
+  app.post("/api/updateResolucionSistema", (req, res) => {
+    if (!req.session.role || req.session.role !== "SYS") {
+      var resjson = [{ "@err": -1, message: "No autorizado" }];
+      res.status(401).send(resjson);
+      return;
+    }
+
+    Resoluciones.updateSistema(req.body.num, req.body.fecha, (err, data) => {
+      if (err) {
+        console.log(err);
+        res.status(500).send({
+          "@err": 1,
+          message: "Error al traer datos de la resolucion"
+        });
+      } else {
+        res.status(200).send({ "@err": 0, message: "Resolucion cambianda" });
+      }
     });
   });
 };

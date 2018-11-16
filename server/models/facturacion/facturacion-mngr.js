@@ -50,67 +50,70 @@ facturacionMngr.addFactura = (
   cliente,
   detalle,
   total,
+  computadora,
   callback
 ) => {
   if (con) {
-    con.beginTransaction(function(err) {
-      if (err) {
-        console.log(err);
-        callback(err, null);
-        throw err;
-      }
+    con.getConnection((error, connection) => {
+      connection.beginTransaction(function(err) {
+        if (err) {
+          console.log(err);
+          callback(err, null);
+          throw err;
+        }
 
-      con.query(
-        "SET @ntransaccion=-1; CALL add_factura(?,?,?,?,@ntransaccion); SELECT @ntransaccion;",
-        [nit_negocio, cliente.nit, total, 1],
-        (err, rows) => {
-          if (err) {
-            con.rollback(() => {
-              console.log("Error al intentar agregar el factura " + err);
-              callback(err, null);
-              throw err;
-            });
-          }
-          const ntransaccion = parseInt(
-            rows[rows.length - 1][0]["@ntransaccion"]
-          );
-
-          var detalleQuery = "";
-          detalle.forEach(element => {
-            detalleQuery +=
-              "CALL add_detalle(" +
-              mysql.escape(element.codigo) +
-              "," +
-              mysql.escape(element.cantidad) +
-              "," +
-              mysql.escape(ntransaccion) +
-              "," +
-              mysql.escape(nit_negocio) +
-              ");";
-          });
-
-          con.query(detalleQuery, [], (err, rows) => {
+        connection.query(
+          "SET @ntransaccion=-1; CALL add_factura(?,?,?,?,@ntransaccion); SELECT @ntransaccion;",
+          [nit_negocio, cliente.nit, total, computadora],
+          (err, rows) => {
             if (err) {
-              con.rollback(() => {
-                console.log("Error al intentar agregar el detalle " + err);
+              connection.rollback(() => {
+                console.log("Error al intentar agregar el factura " + err);
                 callback(err, null);
                 throw err;
               });
-            } else {
-              con.commit(err => {
-                if (err) {
-                  con.rollback(function() {
-                    callback(err, null);
-                    throw err;
-                  });
-                }
-
-                callback(null, ntransaccion);
-              });
             }
-          });
-        }
-      );
+            const ntransaccion = parseInt(
+              rows[rows.length - 1][0]["@ntransaccion"]
+            );
+
+            var detalleQuery = "";
+            detalle.forEach(element => {
+              detalleQuery +=
+                "CALL add_detalle(" +
+                mysql.escape(element.codigo) +
+                "," +
+                mysql.escape(element.cantidad) +
+                "," +
+                mysql.escape(ntransaccion) +
+                "," +
+                mysql.escape(nit_negocio) +
+                ");";
+            });
+
+            connection.query(detalleQuery, [], (err, rows) => {
+              if (err) {
+                connection.rollback(() => {
+                  console.log("Error al intentar agregar el detalle " + err);
+                  callback(err, null);
+                  throw err;
+                });
+              } else {
+                connection.commit(err => {
+                  if (err) {
+                    connection.rollback(function() {
+                      callback(err, null);
+                      throw err;
+                    });
+                  }
+
+                  callback(null, ntransaccion);
+                });
+              }
+            });
+          }
+        );
+      });
     });
   }
 };
@@ -119,7 +122,7 @@ facturacionMngr.getFacturaData = (nit_negocio, ntransaccion, callback) => {
   if (con) {
     con.query(
       "SELECT F.NumTransaccion AS ntransaccion," +
-        " N.NIT AS nit_negocio, N.Nombre AS nombre_negocio, N.Denominacion AS denominacion_negocio, N.Direccion AS direccion_negocio, " +
+        " N.NIT AS nit_negocio, N.Nombre AS nombre_negocio, N.Denominacion AS denominacion_negocio, N.Direccion AS direccion_negocio, N.pequeno AS pequeno, " +
         " C.NIT AS nit_cliente, C.nombre AS nombre_cliente, C.direccion AS direccion_cliente, " +
         " T.correlativo AS nFactura, T.fecha AS fecha,T.monto AS total,T.idComputadora AS computadora, " +
         " R.Num AS nResolucion,R.Serie AS serie, concat_ws('',R.Inicio,' al ',R.Fin) AS rango, R.Fecha as fechaResolucion " +
