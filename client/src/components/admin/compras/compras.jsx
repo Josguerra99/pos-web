@@ -282,6 +282,9 @@ class Compras extends Component {
   }
 
   addCompra = (factura, callback) => {
+    if (this.state.sendingData) {
+      return;
+    }
     this.setState({ sendingData: true });
     const requestData = {
       total: factura.total,

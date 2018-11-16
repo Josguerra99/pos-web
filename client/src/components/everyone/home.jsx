@@ -74,7 +74,7 @@ const styles = theme => ({
 const tiers = [
   {
     title: "Básico",
-    price: "10",
+    price: "20",
     description: ["1 computadora", "2 GB de almacenamiento"],
     buttonText: "Iniciar",
     buttonVariant: "outlined"
@@ -154,7 +154,7 @@ function Pricing(props) {
             color="textPrimary"
             gutterBottom
           >
-            Comprar
+            Precios
           </Typography>
           <Typography
             variant="h6"

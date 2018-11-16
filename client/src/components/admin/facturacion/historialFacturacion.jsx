@@ -29,6 +29,7 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
+import LinearProgress from "@material-ui/core/LinearProgress";
 
 const reportmngr = new ReportMngr();
 
@@ -163,7 +164,8 @@ class HistorialFacturacion extends Component {
                 Num: el.NumTransaccion,
                 Correlativo: el.correlativo,
                 Monto: "Q." + el.monto.toFixed(2),
-                Fecha: fecha
+                Fecha: fecha,
+                nit_cliente: el.nit_cliente
               };
             })
           });
@@ -183,6 +185,7 @@ class HistorialFacturacion extends Component {
     const request = { ntransaccion: ntransaccion };
     this.setState({ detalle: [] });
     this.setState({ hasDetalle: false });
+    await nextFrame();
 
     return fetch("/api/getDetalle", {
       method: "POST",
@@ -201,8 +204,11 @@ class HistorialFacturacion extends Component {
   }
 
   async VerDetalle(transaccion) {
-    this.bringDetalle(transaccion);
+    this.setState({ detalle: [], hasDetalle: false });
+    await nextFrame();
     this.setState({ openDetalle: true });
+    await nextFrame();
+    this.bringDetalle(transaccion);
   }
   handleDetalleClose = () => {
     this.setState({ openDetalle: false });
@@ -218,6 +224,7 @@ class HistorialFacturacion extends Component {
         <TableCell>Número de factura</TableCell>
         <TableCell>Monto Total</TableCell>
         <TableCell>Fecha</TableCell>
+        <TableCell>NIT Cliente</TableCell>
         <TableCell>Detalle</TableCell>
       </TableRow>
     );
@@ -238,15 +245,15 @@ class HistorialFacturacion extends Component {
         <TableCell>{row.Correlativo}</TableCell>
         <TableCell>{row.Monto}</TableCell>
         <TableCell>{row.Fecha}</TableCell>
+        <TableCell>{row.nit_cliente}</TableCell>
         <TableCell>
           <IconButton
-            //className={classes.button}
             aria-label="ViewMore"
             color="primary"
             onClick={() => {
+              //className={classes.button}
               this.VerDetalle(row.Num);
             }}
-            //onClick={() => reportmngr.downloadReport("historialResoluciones")}
           >
             <MoreIcon />
           </IconButton>
@@ -312,9 +319,10 @@ class HistorialFacturacion extends Component {
         </Filters>
 
         {/* Icono de descargar e imprimir */}
-        <Grid container>
-          <Grid item xs={10} />
 
+        {/* <Grid container>
+          <Grid item xs={10} />
+  
           <Grid item xs={2}>
             <IconButton
               className={classes.button}
@@ -335,14 +343,14 @@ class HistorialFacturacion extends Component {
               <PrintIcon />
             </IconButton>
           </Grid>
-        </Grid>
+            </Grid>*/}
 
         {/*Tabla de datos */}
         <PaginationTable
           tableHead={this.renderTableHead()}
           bodyMap={this.bodyMap}
           rows={this.state.data}
-          columns={5}
+          columns={6}
           loading={!this.state.hasData}
         />
 
@@ -364,17 +372,23 @@ class HistorialFacturacion extends Component {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {this.state.detalle.map((row, index) => {
-                  return (
-                    <TableRow key={index}>
-                      <TableCell>{row.codigoBarras}</TableCell>
-                      <TableCell>{row.producto}</TableCell>
-                      <TableCell>{row.cantidad}</TableCell>
-                      <TableCell>{row.precioUnitario}</TableCell>
-                      <TableCell>{row.precioVenta}</TableCell>
-                    </TableRow>
-                  );
-                })}
+                {!this.state.hasDetalle && (
+                  <TableRow>
+                    <LinearProgress />
+                  </TableRow>
+                )}
+                {this.state.hasDetalle &&
+                  this.state.detalle.map((row, index) => {
+                    return (
+                      <TableRow key={index}>
+                        <TableCell>{row.codigoBarras}</TableCell>
+                        <TableCell>{row.producto}</TableCell>
+                        <TableCell>{row.cantidad}</TableCell>
+                        <TableCell>{row.precioUnitario}</TableCell>
+                        <TableCell>{row.precioVenta}</TableCell>
+                      </TableRow>
+                    );
+                  })}
               </TableBody>
             </Table>
           </DialogContent>

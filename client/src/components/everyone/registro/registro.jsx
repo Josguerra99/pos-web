@@ -176,7 +176,7 @@ class Checkout extends React.Component {
       const addNegocio = new AddNegocio(
         this.state.negocio,
         this.state.comprador,
-        5
+        this.props.computadoras
       );
       var data = addNegocio.generateData();
       addNegocio.registerNegocio(data, (inserted, err) => {

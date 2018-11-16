@@ -3,7 +3,9 @@ import { Router, Route, Switch } from "react-router-dom";
 import SignIn from "../components/signin/signin";
 
 import Home from "../components/everyone/home";
+import RegistroBasic from "../components/everyone/registro/basic";
 import RegistroPro from "../components/everyone/registro/pro";
+import RegistroGolden from "../components/everyone/registro/golden";
 
 import HomeDefault from "../components/default/homedefault";
 import HomeSystem from "../components/system/resolucionSistema";
@@ -35,7 +37,17 @@ export default () => (
         render={props => <HomeDefault {...props} />}
       />
       <Route path="/home" exact render={props => <Home {...props} />} />
+      <Route
+        path="/basic"
+        exact
+        render={props => <RegistroBasic {...props} />}
+      />
       <Route path="/pro" exact render={props => <RegistroPro {...props} />} />
+      <Route
+        path="/golden"
+        exact
+        render={props => <RegistroGolden {...props} />}
+      />
 
       <Route
         path="/admin/home"

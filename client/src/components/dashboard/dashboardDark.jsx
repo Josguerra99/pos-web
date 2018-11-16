@@ -21,7 +21,7 @@ import Menu from "@material-ui/core/Menu";
 class Dashboard extends Component {
   state = {
     anchorEl: null,
-    open: true,
+    open: false,
     mainListItems: [],
     secondaryListItems: []
   };

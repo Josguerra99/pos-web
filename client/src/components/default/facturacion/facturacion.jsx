@@ -39,6 +39,8 @@ import io from "socket.io-client";
 
 var bigDecimal = require("js-big-decimal");
 
+const reportmngr = new ReportMngr();
+
 const styles = theme => ({
   card: {
     // display: "flex"
@@ -265,6 +267,9 @@ class Facturacion extends Component {
   }
 
   addFactura = (factura, callback) => {
+    if (this.state.sendingData) {
+      return;
+    }
     this.setState({ sendingData: true });
     const requestData = {
       total: factura.total,
@@ -289,14 +294,10 @@ class Facturacion extends Component {
           this.clear();
           this.setState({ message: "Venta realizada exitosamente" });
           this.setState({ open: true }, () => {
-            const reportmngr = new ReportMngr();
-            reportmngr.openReport(
-              "factura?ntransaccion=" + data["ntransaccion"],
-              [],
-              fireURL => {
-                window.open(fireURL).print();
-              }
-            );
+            reportmngr.reset();
+            reportmngr.openReport("factura?ntransaccion=", data, fireURL => {
+              window.open(fireURL).print();
+            });
           });
         } else {
           this.setState({ message: "Error al intentar realizar la venta" });

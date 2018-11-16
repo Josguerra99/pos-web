@@ -7,7 +7,7 @@ class Pro extends Component {
   render() {
     return (
       <EveryOne>
-        <Registro computadoras={5} />
+        <Registro computadoras={20} />
       </EveryOne>
     );
   }
