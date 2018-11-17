@@ -147,7 +147,7 @@ class Facturacion extends Component {
   }
 
   initSocket = responseFunction => {
-    const socket = io("localhost:3001");
+    const socket = io("https://web-online.herokuapp.com");
 
     socket.on("connect", () => {
       console.log("Connected");
