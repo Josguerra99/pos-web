@@ -2,6 +2,7 @@
 const mysql = require("mysql");
 
 const con = mysql.createPool({
+  connectionLimit: 100,
   host: "sql9.freemysqlhosting.net",
   database: "sql9261239",
   user: "sql9261239",
